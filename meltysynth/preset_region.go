@@ -33,6 +33,7 @@ func createPresetRegion(preset *Preset, global []generator, local []generator, i
 	if !(0 <= id && int(id) < len(instruments)) {
 		return nil, errors.New("The preset '" + preset.Name + "' contains an invalid instrument ID '" + strconv.Itoa(int(id)) + "'.")
 	}
+	result.Instrument = instruments[id]
 
 	return result, nil
 }
@@ -43,8 +44,7 @@ func createPresetRegions(preset *Preset, zones []*zone, local []generator, instr
 	var err error
 
 	// Is the first one the global zone?
-	lastGenerator := zones[0].generators[len(zones[0].generators)-1]
-	if len(zones[0].generators) == 0 || lastGenerator.generatorType != GEN_Instrument {
+	if len(zones[0].generators) == 0 || zones[0].generators[len(zones[0].generators)-1].generatorType != GEN_Instrument {
 		// The first one is the global zone.
 		global = zones[0]
 	}

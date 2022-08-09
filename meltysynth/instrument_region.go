@@ -50,6 +50,7 @@ func createInstrumentRegion(instrument *Instrument, global []generator, local []
 	if !(0 <= id && int(id) < len(samples)) {
 		return nil, errors.New("The instrument '" + instrument.Name + "' contains an invalid sample ID '" + strconv.Itoa(int(id)) + "'.")
 	}
+	result.Sample = samples[id]
 
 	return result, nil
 }
@@ -60,8 +61,7 @@ func createInstrumentRegions(instrument *Instrument, zones []*zone, local []gene
 	var err error
 
 	// Is the first one the global zone?
-	lastGenerator := zones[0].generators[len(zones[0].generators)-1]
-	if len(zones[0].generators) == 0 || lastGenerator.generatorType != GEN_Instrument {
+	if len(zones[0].generators) == 0 || zones[0].generators[len(zones[0].generators)-1].generatorType != GEN_SampleID {
 		// The first one is the global zone.
 		global = zones[0]
 	}
