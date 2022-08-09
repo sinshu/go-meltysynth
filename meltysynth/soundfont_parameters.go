@@ -45,6 +45,7 @@ func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
 	var instrumentInfos []instrumentInfo
 	var instrumentBag []zoneInfo
 	var instrumentGenerators []generator
+	var sampleHeaders []SampleHeader
 
 	for pos < end {
 
@@ -72,6 +73,16 @@ func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
 			err = discardModulatorData(reader, size)
 		case "pgen":
 			presetGenerators, err = readGeneratorsFromChunk(reader, size)
+		case "inst":
+			instrumentInfos, err = readInstrumentsFromChunk(reader, size)
+		case "ibag":
+			instrumentBag, err = readZonesFromChunk(reader, size)
+		case "imod":
+			err = discardModulatorData(reader, size)
+		case "igen":
+			instrumentGenerators, err = readGeneratorsFromChunk(reader, size)
+		case "shdr":
+			sampleHeaders, err = readSampleHeadersFromChunk(reader, size)
 		default:
 			return nil, errors.New("The INFO list contains an unknown ID '" + id + "'.")
 		}
@@ -100,6 +111,9 @@ func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
 	}
 	if instrumentGenerators == nil {
 		return nil, errors.New("The IGEN sub-chunk was not found.")
+	}
+	if sampleHeaders == nil {
+		return nil, errors.New("The SHDR sub-chunk was not found.")
 	}
 
 	return nil, nil
