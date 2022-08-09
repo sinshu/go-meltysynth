@@ -47,7 +47,7 @@ func NewSoundFontInfo(reader io.Reader) (*SoundFontInfo, error) {
 	}
 	pos += 4
 
-	var result SoundFontInfo
+	result := new(SoundFontInfo)
 
 	for pos < end {
 
@@ -100,5 +100,5 @@ func NewSoundFontInfo(reader io.Reader) (*SoundFontInfo, error) {
 		pos += size
 	}
 
-	return &result, nil
+	return result, nil
 }

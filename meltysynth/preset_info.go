@@ -17,7 +17,7 @@ type presetInfo struct {
 	morphology     int32
 }
 
-func readPresetsFromChunk(reader io.Reader, size int32) ([]presetInfo, error) {
+func readPresetsFromChunk(reader io.Reader, size int32) ([]*presetInfo, error) {
 
 	var err error
 
@@ -27,11 +27,11 @@ func readPresetsFromChunk(reader io.Reader, size int32) ([]presetInfo, error) {
 
 	count := size / 38
 
-	presets := make([]presetInfo, count, count)
+	presets := make([]*presetInfo, count, count)
 
 	for i := int32(0); i < count; i++ {
 
-		var preset presetInfo
+		preset := new(presetInfo)
 
 		preset.name, err = readFixedLengthString(reader, 20)
 		if err != nil {

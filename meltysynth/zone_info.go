@@ -13,7 +13,7 @@ type zoneInfo struct {
 	modulatorCount int32
 }
 
-func readZonesFromChunk(reader io.Reader, size int32) ([]zoneInfo, error) {
+func readZonesFromChunk(reader io.Reader, size int32) ([]*zoneInfo, error) {
 
 	var err error
 
@@ -23,11 +23,11 @@ func readZonesFromChunk(reader io.Reader, size int32) ([]zoneInfo, error) {
 
 	count := size / 4
 
-	zones := make([]zoneInfo, count, count)
+	zones := make([]*zoneInfo, count, count)
 
 	for i := int32(0); i < count; i++ {
 
-		var zone zoneInfo
+		zone := new(zoneInfo)
 
 		var generatorIndex uint16
 		err = binary.Read(reader, binary.LittleEndian, &generatorIndex)

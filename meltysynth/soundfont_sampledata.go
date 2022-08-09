@@ -39,7 +39,7 @@ func newSoundFontSampleData(reader io.Reader) (*soundFontSampleData, error) {
 	}
 	pos += 4
 
-	var result soundFontSampleData
+	result := new(soundFontSampleData)
 
 	for pos < end {
 
@@ -86,5 +86,5 @@ func newSoundFontSampleData(reader io.Reader) (*soundFontSampleData, error) {
 		return nil, errors.New("No valid sample data was found.")
 	}
 
-	return &result, nil
+	return result, nil
 }

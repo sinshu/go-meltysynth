@@ -12,7 +12,7 @@ type instrumentInfo struct {
 	zoneEndIndex   int32
 }
 
-func readInstrumentsFromChunk(reader io.Reader, size int32) ([]instrumentInfo, error) {
+func readInstrumentsFromChunk(reader io.Reader, size int32) ([]*instrumentInfo, error) {
 
 	var err error
 
@@ -22,11 +22,11 @@ func readInstrumentsFromChunk(reader io.Reader, size int32) ([]instrumentInfo, e
 
 	count := size / 22
 
-	instruments := make([]instrumentInfo, count, count)
+	instruments := make([]*instrumentInfo, count, count)
 
 	for i := int32(0); i < count; i++ {
 
-		var instrument instrumentInfo
+		instrument := new(instrumentInfo)
 
 		instrument.name, err = readFixedLengthString(reader, 20)
 		if err != nil {

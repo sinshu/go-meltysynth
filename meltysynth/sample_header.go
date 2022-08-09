@@ -19,7 +19,7 @@ type SampleHeader struct {
 	sampleType      uint16
 }
 
-func readSampleHeadersFromChunk(reader io.Reader, size int32) ([]SampleHeader, error) {
+func readSampleHeadersFromChunk(reader io.Reader, size int32) ([]*SampleHeader, error) {
 
 	var n int
 	var err error
@@ -30,11 +30,11 @@ func readSampleHeadersFromChunk(reader io.Reader, size int32) ([]SampleHeader, e
 
 	count := size/46 - 1
 
-	headers := make([]SampleHeader, count, count)
+	headers := make([]*SampleHeader, count, count)
 
 	for i := int32(0); i < count; i++ {
 
-		var header SampleHeader
+		header := new(SampleHeader)
 
 		header.name, err = readFixedLengthString(reader, 20)
 		if err != nil {

@@ -40,7 +40,7 @@ func NewSoundFont(reader io.Reader) (*SoundFont, error) {
 		return nil, errors.New("The type of the RIFF chunk must be 'sfbk', but was '" + formType + "'.")
 	}
 
-	var result SoundFont
+	result := new(SoundFont)
 
 	result.Info, err = NewSoundFontInfo(reader)
 	if err != nil {
@@ -64,5 +64,5 @@ func NewSoundFont(reader io.Reader) (*SoundFont, error) {
 	if parameters != nil {
 	}
 
-	return &result, nil
+	return result, nil
 }

@@ -10,9 +10,9 @@ type InstrumentRegion struct {
 	gs     [61]int16
 }
 
-func createInstrumentRegion(instrument *Instrument, global []generator, local []generator, samples []SampleHeader) (*InstrumentRegion, error) {
+func createInstrumentRegion(instrument *Instrument, global []generator, local []generator, samples []*SampleHeader) (*InstrumentRegion, error) {
 
-	var result InstrumentRegion
+	result := new(InstrumentRegion)
 
 	result.gs[GEN_InitialFilterCutoffFrequency] = 13500
 	result.gs[GEN_DelayModulationLfo] = -12000
@@ -36,13 +36,13 @@ func createInstrumentRegion(instrument *Instrument, global []generator, local []
 
 	if global != nil {
 		for i := 0; i < len(global); i++ {
-			setInstrumentRegionParameter(&result, global[i])
+			setInstrumentRegionParameter(result, global[i])
 		}
 	}
 
 	if local != nil {
 		for i := 0; i < len(local); i++ {
-			setInstrumentRegionParameter(&result, local[i])
+			setInstrumentRegionParameter(result, local[i])
 		}
 	}
 
@@ -51,7 +51,43 @@ func createInstrumentRegion(instrument *Instrument, global []generator, local []
 		return nil, errors.New("The instrument '" + instrument.Name + "' contains an invalid sample ID '" + strconv.Itoa(int(id)) + "'.")
 	}
 
-	return &result, nil
+	return result, nil
+}
+
+func createInstrumentRegions(instrument *Instrument, zones []*zone, local []generator, samples []*SampleHeader) ([]*InstrumentRegion, error) {
+
+	var global *zone = nil
+	var err error
+
+	// Is the first one the global zone?
+	lastGenerator := zones[0].generators[len(zones[0].generators)-1]
+	if len(zones[0].generators) == 0 || lastGenerator.generatorType != GEN_Instrument {
+		// The first one is the global zone.
+		global = zones[0]
+	}
+
+	if global != nil {
+		count := len(zones) - 1
+		regions := make([]*InstrumentRegion, count, count)
+		for i := 0; i < count; i++ {
+			regions[i], err = createInstrumentRegion(instrument, global.generators, zones[i+1].generators, samples)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return regions, nil
+	} else {
+		// No global zone.
+		count := len(zones)
+		regions := make([]*InstrumentRegion, count, count)
+		for i := 0; i < count; i++ {
+			regions[i], err = createInstrumentRegion(instrument, nil, zones[i].generators, samples)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return regions, nil
+	}
 }
 
 func setInstrumentRegionParameter(region *InstrumentRegion, parameter generator) {

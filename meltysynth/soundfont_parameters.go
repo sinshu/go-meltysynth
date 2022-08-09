@@ -39,13 +39,13 @@ func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
 	}
 	pos += 4
 
-	var presetInfos []presetInfo
-	var presetBag []zoneInfo
+	var presetInfos []*presetInfo
+	var presetBag []*zoneInfo
 	var presetGenerators []generator
-	var instrumentInfos []instrumentInfo
-	var instrumentBag []zoneInfo
+	var instrumentInfos []*instrumentInfo
+	var instrumentBag []*zoneInfo
 	var instrumentGenerators []generator
-	var sampleHeaders []SampleHeader
+	var sampleHeaders []*SampleHeader
 
 	for pos < end {
 
@@ -116,5 +116,10 @@ func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
 		return nil, errors.New("The SHDR sub-chunk was not found.")
 	}
 
-	return nil, nil
+	parameters := new(soundFontParameters)
+
+	instrumentZone, err := createZones(instrumentBag, instrumentGenerators)
+	parameters.instruments, err = create
+
+	return parameters, nil
 }
