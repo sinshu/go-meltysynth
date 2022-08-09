@@ -55,5 +55,14 @@ func NewSoundFont(reader io.Reader) (*SoundFont, error) {
 	result.BitsPerSample = sampleData.bitsPerSample
 	result.WaveData = sampleData.samples
 
+	var parameters *soundFontParameters
+	parameters, err = newSoundFontParameters(reader)
+	if err != nil {
+		return nil, err
+	}
+
+	if parameters != nil {
+	}
+
 	return &result, nil
 }

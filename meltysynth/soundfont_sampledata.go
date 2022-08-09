@@ -66,7 +66,7 @@ func newSoundFontSampleData(reader io.Reader) (*soundFontSampleData, error) {
 
 		case "sm24":
 			// 24 bit audio is not supported.
-			n, err = reader.Read(make([]byte, size))
+			n, err = reader.Read(make([]byte, size, size))
 			if n != int(size) {
 				return nil, errors.New("Failed to read the 24 bit audio data.")
 			}
