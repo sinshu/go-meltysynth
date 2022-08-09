@@ -38,7 +38,7 @@ func createPresetRegion(preset *Preset, global []generator, local []generator, i
 	return result, nil
 }
 
-func createPresetRegions(preset *Preset, zones []*zone, local []generator, instruments []*Instrument) ([]*PresetRegion, error) {
+func createPresetRegions(preset *Preset, zones []*zone, instruments []*Instrument) ([]*PresetRegion, error) {
 
 	var global *zone = nil
 	var err error

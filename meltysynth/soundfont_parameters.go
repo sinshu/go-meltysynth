@@ -7,9 +7,9 @@ import (
 )
 
 type soundFontParameters struct {
-	sampleHeaders []SampleHeader
-	presets       []Preset
-	instruments   []Instrument
+	sampleHeaders []*SampleHeader
+	presets       []*Preset
+	instruments   []*Instrument
 }
 
 func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
@@ -118,8 +118,13 @@ func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
 
 	parameters := new(soundFontParameters)
 
-	instrumentZone, err := createZones(instrumentBag, instrumentGenerators)
-	parameters.instruments, err = create
+	parameters.sampleHeaders = sampleHeaders
+
+	instrumentZones, err := createZones(instrumentBag, instrumentGenerators)
+	parameters.instruments, err = createInstruments(instrumentInfos, instrumentZones, sampleHeaders)
+
+	presetZones, err := createZones(presetBag, presetGenerators)
+	parameters.presets, err = createPresets(presetInfos, presetZones, parameters.instruments)
 
 	return parameters, nil
 }

@@ -55,7 +55,7 @@ func createInstrumentRegion(instrument *Instrument, global []generator, local []
 	return result, nil
 }
 
-func createInstrumentRegions(instrument *Instrument, zones []*zone, local []generator, samples []*SampleHeader) ([]*InstrumentRegion, error) {
+func createInstrumentRegions(instrument *Instrument, zones []*zone, samples []*SampleHeader) ([]*InstrumentRegion, error) {
 
 	var global *zone = nil
 	var err error

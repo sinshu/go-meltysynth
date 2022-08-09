@@ -10,6 +10,9 @@ type SoundFont struct {
 	Info          *SoundFontInfo
 	BitsPerSample int32
 	WaveData      []int16
+	SampleHeaders []*SampleHeader
+	Presets       []*Preset
+	Instruments   []*Instrument
 }
 
 func NewSoundFont(reader io.Reader) (*SoundFont, error) {
@@ -61,8 +64,9 @@ func NewSoundFont(reader io.Reader) (*SoundFont, error) {
 		return nil, err
 	}
 
-	if parameters != nil {
-	}
+	result.SampleHeaders = parameters.sampleHeaders
+	result.Presets = parameters.presets
+	result.Instruments = parameters.instruments
 
 	return result, nil
 }
