@@ -27,15 +27,15 @@ func main() {
 	binary.Write(file, binary.LittleEndian, sf2.WaveData)
 	file.Close()
 
-	instCount := len(sf2.Instruments)
-	for i := 0; i < instCount; i++ {
-		inst := sf2.Instruments[i]
-		fmt.Println(inst.Name)
+	presetCount := len(sf2.Presets)
+	for i := 0; i < presetCount; i++ {
+		pre := sf2.Presets[i]
+		fmt.Println(pre.Name)
 
-		regCount := len(inst.Regions)
+		regCount := len(pre.Regions)
 		for r := 0; r < regCount; r++ {
-			reg := inst.Regions[r]
-			fmt.Println("    " + reg.Sample.Name)
+			reg := pre.Regions[r]
+			fmt.Println("    " + reg.Instrument.Name)
 		}
 	}
 }
