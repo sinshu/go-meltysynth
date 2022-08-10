@@ -72,7 +72,7 @@ func createPresetRegions(preset *Preset, zones []*zone, instruments []*Instrumen
 
 func setPresetRegionParameter(region *PresetRegion, parameter generator) {
 
-	index := parameter.value
+	index := parameter.generatorType
 
 	// Unknown generators should be ignored.
 	if 0 <= index && int(index) < len(region.gs) {

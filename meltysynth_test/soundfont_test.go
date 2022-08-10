@@ -7,7 +7,7 @@ import (
 	"github.com/sinshu/go-meltysynth/meltysynth"
 )
 
-func TestTimGM6mb(t *testing.T) {
+func TestTimGM6mb_SoundFont(t *testing.T) {
 
 	file, _ := os.Open("TimGM6mb.sf2")
 	soundFont, _ := meltysynth.NewSoundFont(file)

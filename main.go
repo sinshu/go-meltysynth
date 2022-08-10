@@ -10,8 +10,6 @@ import (
 
 func main() {
 
-	fmt.Print("START!!")
-
 	fs, err := os.Open("timgm6mb.sf2")
 
 	if err != nil {
@@ -28,4 +26,16 @@ func main() {
 	}
 	binary.Write(file, binary.LittleEndian, sf2.WaveData)
 	file.Close()
+
+	instCount := len(sf2.Instruments)
+	for i := 0; i < instCount; i++ {
+		inst := sf2.Instruments[i]
+		fmt.Println(inst.Name)
+
+		regCount := len(inst.Regions)
+		for r := 0; r < regCount; r++ {
+			reg := inst.Regions[r]
+			fmt.Println("    " + reg.Sample.Name)
+		}
+	}
 }
