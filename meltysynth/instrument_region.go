@@ -14,25 +14,25 @@ func createInstrumentRegion(instrument *Instrument, global []generator, local []
 
 	result := new(InstrumentRegion)
 
-	result.gs[GEN_InitialFilterCutoffFrequency] = 13500
-	result.gs[GEN_DelayModulationLfo] = -12000
-	result.gs[GEN_DelayVibratoLfo] = -12000
-	result.gs[GEN_DelayModulationEnvelope] = -12000
-	result.gs[GEN_AttackModulationEnvelope] = -12000
-	result.gs[GEN_HoldModulationEnvelope] = -12000
-	result.gs[GEN_DecayModulationEnvelope] = -12000
-	result.gs[GEN_ReleaseModulationEnvelope] = -12000
-	result.gs[GEN_DelayVolumeEnvelope] = -12000
-	result.gs[GEN_AttackVolumeEnvelope] = -12000
-	result.gs[GEN_HoldVolumeEnvelope] = -12000
-	result.gs[GEN_DecayVolumeEnvelope] = -12000
-	result.gs[GEN_ReleaseVolumeEnvelope] = -12000
-	result.gs[GEN_KeyRange] = 0x7F00
-	result.gs[GEN_VelocityRange] = 0x7F00
-	result.gs[GEN_KeyNumber] = -1
-	result.gs[GEN_Velocity] = -1
-	result.gs[GEN_ScaleTuning] = 100
-	result.gs[GEN_OverridingRootKey] = -1
+	result.gs[gen_InitialFilterCutoffFrequency] = 13500
+	result.gs[gen_DelayModulationLfo] = -12000
+	result.gs[gen_DelayVibratoLfo] = -12000
+	result.gs[gen_DelayModulationEnvelope] = -12000
+	result.gs[gen_AttackModulationEnvelope] = -12000
+	result.gs[gen_HoldModulationEnvelope] = -12000
+	result.gs[gen_DecayModulationEnvelope] = -12000
+	result.gs[gen_ReleaseModulationEnvelope] = -12000
+	result.gs[gen_DelayVolumeEnvelope] = -12000
+	result.gs[gen_AttackVolumeEnvelope] = -12000
+	result.gs[gen_HoldVolumeEnvelope] = -12000
+	result.gs[gen_DecayVolumeEnvelope] = -12000
+	result.gs[gen_ReleaseVolumeEnvelope] = -12000
+	result.gs[gen_KeyRange] = 0x7F00
+	result.gs[gen_VelocityRange] = 0x7F00
+	result.gs[gen_KeyNumber] = -1
+	result.gs[gen_Velocity] = -1
+	result.gs[gen_ScaleTuning] = 100
+	result.gs[gen_OverridingRootKey] = -1
 
 	if global != nil {
 		for i := 0; i < len(global); i++ {
@@ -46,7 +46,7 @@ func createInstrumentRegion(instrument *Instrument, global []generator, local []
 		}
 	}
 
-	id := result.gs[GEN_SampleID]
+	id := result.gs[gen_SampleID]
 	if !(0 <= id && int(id) < len(samples)) {
 		return nil, errors.New("The instrument '" + instrument.Name + "' contains an invalid sample ID '" + strconv.Itoa(int(id)) + "'.")
 	}
@@ -61,7 +61,7 @@ func createInstrumentRegions(instrument *Instrument, zones []*zone, samples []*S
 	var err error
 
 	// Is the first one the global zone?
-	if len(zones[0].generators) == 0 || zones[0].generators[len(zones[0].generators)-1].generatorType != GEN_SampleID {
+	if len(zones[0].generators) == 0 || zones[0].generators[len(zones[0].generators)-1].generatorType != gen_SampleID {
 		// The first one is the global zone.
 		global = zones[0]
 	}
@@ -117,192 +117,192 @@ func GetInstrumentSampleEndLoop(region *InstrumentRegion) int32 {
 }
 
 func GetInstrumentStartAddressOffset(region *InstrumentRegion) int32 {
-	return 32768*int32(region.gs[GEN_StartAddressCoarseOffset]) + int32(region.gs[GEN_StartAddressOffset])
+	return 32768*int32(region.gs[gen_StartAddressCoarseOffset]) + int32(region.gs[gen_StartAddressOffset])
 }
 
 func GetInstrumentEndAddressOffset(region *InstrumentRegion) int32 {
-	return 32768*int32(region.gs[GEN_EndAddressCoarseOffset]) + int32(region.gs[GEN_EndAddressOffset])
+	return 32768*int32(region.gs[gen_EndAddressCoarseOffset]) + int32(region.gs[gen_EndAddressOffset])
 }
 
 func GetInstrumentStartLoopAddressOffset(region *InstrumentRegion) int32 {
-	return 32768*int32(region.gs[GEN_StartLoopAddressCoarseOffset]) + int32(region.gs[GEN_StartLoopAddressOffset])
+	return 32768*int32(region.gs[gen_StartLoopAddressCoarseOffset]) + int32(region.gs[gen_StartLoopAddressOffset])
 }
 
 func GetInstrumentEndLoopAddressOffset(region *InstrumentRegion) int32 {
-	return 32768*int32(region.gs[GEN_EndLoopAddressCoarseOffset]) + int32(region.gs[GEN_EndLoopAddressOffset])
+	return 32768*int32(region.gs[gen_EndLoopAddressCoarseOffset]) + int32(region.gs[gen_EndLoopAddressOffset])
 }
 
 func GetInstrumentModulationLfoToPitch(region *InstrumentRegion) int32 {
-	return int32(region.gs[GEN_ModulationLfoToPitch])
+	return int32(region.gs[gen_ModulationLfoToPitch])
 }
 
 func GetInstrumentVibratoLfoToPitch(region *InstrumentRegion) int32 {
-	return int32(region.gs[GEN_VibratoLfoToPitch])
+	return int32(region.gs[gen_VibratoLfoToPitch])
 }
 
 func GetInstrumentModulationEnvelopeToPitch(region *InstrumentRegion) int32 {
-	return int32(region.gs[GEN_ModulationEnvelopeToPitch])
+	return int32(region.gs[gen_ModulationEnvelopeToPitch])
 }
 
 func GetInstrumentInitialFilterCutoffFrequency(region *InstrumentRegion) float32 {
-	return calcCentsToHertz(float32(region.gs[GEN_InitialFilterCutoffFrequency]))
+	return calcCentsToHertz(float32(region.gs[gen_InitialFilterCutoffFrequency]))
 }
 
 func GetInstrumentInitialFilterQ(region *InstrumentRegion) float32 {
-	return float32(0.1) * float32(region.gs[GEN_InitialFilterQ])
+	return float32(0.1) * float32(region.gs[gen_InitialFilterQ])
 }
 
 func GetInstrumentModulationLfoToFilterCutoffFrequency(region *InstrumentRegion) int32 {
-	return int32(region.gs[GEN_ModulationLfoToFilterCutoffFrequency])
+	return int32(region.gs[gen_ModulationLfoToFilterCutoffFrequency])
 }
 
 func GetInstrumentModulationEnvelopeToFilterCutoffFrequency(region *InstrumentRegion) int32 {
-	return int32(region.gs[GEN_ModulationEnvelopeToFilterCutoffFrequency])
+	return int32(region.gs[gen_ModulationEnvelopeToFilterCutoffFrequency])
 }
 
 func GetInstrumentModulationLfoToVolume(region *InstrumentRegion) float32 {
-	return float32(0.1) * float32(region.gs[GEN_ModulationLfoToVolume])
+	return float32(0.1) * float32(region.gs[gen_ModulationLfoToVolume])
 }
 
 func GetInstrumentChorusEffectsSend(region *InstrumentRegion) float32 {
-	return float32(0.1) * float32(region.gs[GEN_ChorusEffectsSend])
+	return float32(0.1) * float32(region.gs[gen_ChorusEffectsSend])
 }
 
 func GetInstrumentReverbEffectsSend(region *InstrumentRegion) float32 {
-	return float32(0.1) * float32(region.gs[GEN_ReverbEffectsSend])
+	return float32(0.1) * float32(region.gs[gen_ReverbEffectsSend])
 }
 
 func GetInstrumentPan(region *InstrumentRegion) float32 {
-	return float32(0.1) * float32(region.gs[GEN_Pan])
+	return float32(0.1) * float32(region.gs[gen_Pan])
 }
 
 func GetInstrumentDelayModulationLfo(region *InstrumentRegion) float32 {
-	return calcTimecentsToSeconds(float32(region.gs[GEN_DelayModulationLfo]))
+	return calcTimecentsToSeconds(float32(region.gs[gen_DelayModulationLfo]))
 }
 
 func GetInstrumentFrequencyModulationLfo(region *InstrumentRegion) float32 {
-	return calcCentsToHertz(float32(region.gs[GEN_FrequencyModulationLfo]))
+	return calcCentsToHertz(float32(region.gs[gen_FrequencyModulationLfo]))
 }
 
 func GetInstrumentDelayVibratoLfo(region *InstrumentRegion) float32 {
-	return calcTimecentsToSeconds(float32(region.gs[GEN_DelayVibratoLfo]))
+	return calcTimecentsToSeconds(float32(region.gs[gen_DelayVibratoLfo]))
 }
 
 func GetInstrumentFrequencyVibratoLfo(region *InstrumentRegion) float32 {
-	return calcCentsToHertz(float32(region.gs[GEN_FrequencyVibratoLfo]))
+	return calcCentsToHertz(float32(region.gs[gen_FrequencyVibratoLfo]))
 }
 
 func GetInstrumentDelayModulationEnvelope(region *InstrumentRegion) float32 {
-	return calcTimecentsToSeconds(float32(region.gs[GEN_DelayModulationEnvelope]))
+	return calcTimecentsToSeconds(float32(region.gs[gen_DelayModulationEnvelope]))
 }
 
 func GetInstrumentAttackModulationEnvelope(region *InstrumentRegion) float32 {
-	return calcTimecentsToSeconds(float32(region.gs[GEN_AttackModulationEnvelope]))
+	return calcTimecentsToSeconds(float32(region.gs[gen_AttackModulationEnvelope]))
 }
 
 func GetInstrumentHoldModulationEnvelope(region *InstrumentRegion) float32 {
-	return calcTimecentsToSeconds(float32(region.gs[GEN_HoldModulationEnvelope]))
+	return calcTimecentsToSeconds(float32(region.gs[gen_HoldModulationEnvelope]))
 }
 
 func GetInstrumentDecayModulationEnvelope(region *InstrumentRegion) float32 {
-	return calcTimecentsToSeconds(float32(region.gs[GEN_DecayModulationEnvelope]))
+	return calcTimecentsToSeconds(float32(region.gs[gen_DecayModulationEnvelope]))
 }
 
 func GetInstrumentSustainModulationEnvelope(region *InstrumentRegion) float32 {
-	return float32(0.1) * float32(region.gs[GEN_SustainModulationEnvelope])
+	return float32(0.1) * float32(region.gs[gen_SustainModulationEnvelope])
 }
 
 func GetInstrumentReleaseModulationEnvelope(region *InstrumentRegion) float32 {
-	return calcTimecentsToSeconds(float32(region.gs[GEN_ReleaseModulationEnvelope]))
+	return calcTimecentsToSeconds(float32(region.gs[gen_ReleaseModulationEnvelope]))
 }
 
 func GetInstrumentKeyNumberToModulationEnvelopeHold(region *InstrumentRegion) int32 {
-	return int32(region.gs[GEN_KeyNumberToModulationEnvelopeHold])
+	return int32(region.gs[gen_KeyNumberToModulationEnvelopeHold])
 }
 
 func GetInstrumentKeyNumberToModulationEnvelopeDecay(region *InstrumentRegion) int32 {
-	return int32(region.gs[GEN_KeyNumberToModulationEnvelopeDecay])
+	return int32(region.gs[gen_KeyNumberToModulationEnvelopeDecay])
 }
 
 func GetInstrumentDelayVolumeEnvelope(region *InstrumentRegion) float32 {
-	return calcTimecentsToSeconds(float32(region.gs[GEN_DelayVolumeEnvelope]))
+	return calcTimecentsToSeconds(float32(region.gs[gen_DelayVolumeEnvelope]))
 }
 
 func GetInstrumentAttackVolumeEnvelope(region *InstrumentRegion) float32 {
-	return calcTimecentsToSeconds(float32(region.gs[GEN_AttackVolumeEnvelope]))
+	return calcTimecentsToSeconds(float32(region.gs[gen_AttackVolumeEnvelope]))
 }
 
 func GetInstrumentHoldVolumeEnvelope(region *InstrumentRegion) float32 {
-	return calcTimecentsToSeconds(float32(region.gs[GEN_HoldVolumeEnvelope]))
+	return calcTimecentsToSeconds(float32(region.gs[gen_HoldVolumeEnvelope]))
 }
 
 func GetInstrumentDecayVolumeEnvelope(region *InstrumentRegion) float32 {
-	return calcTimecentsToSeconds(float32(region.gs[GEN_DecayVolumeEnvelope]))
+	return calcTimecentsToSeconds(float32(region.gs[gen_DecayVolumeEnvelope]))
 }
 
 func GetInstrumentSustainVolumeEnvelope(region *InstrumentRegion) float32 {
-	return float32(0.1) * float32(region.gs[GEN_SustainVolumeEnvelope])
+	return float32(0.1) * float32(region.gs[gen_SustainVolumeEnvelope])
 }
 
 func GetInstrumentReleaseVolumeEnvelope(region *InstrumentRegion) float32 {
-	return calcTimecentsToSeconds(float32(region.gs[GEN_ReleaseVolumeEnvelope]))
+	return calcTimecentsToSeconds(float32(region.gs[gen_ReleaseVolumeEnvelope]))
 }
 
 func GetInstrumentKeyNumberToVolumeEnvelopeHold(region *InstrumentRegion) int32 {
-	return int32(region.gs[GEN_KeyNumberToVolumeEnvelopeHold])
+	return int32(region.gs[gen_KeyNumberToVolumeEnvelopeHold])
 }
 
 func GetInstrumentKeyNumberToVolumeEnvelopeDecay(region *InstrumentRegion) int32 {
-	return int32(region.gs[GEN_KeyNumberToVolumeEnvelopeDecay])
+	return int32(region.gs[gen_KeyNumberToVolumeEnvelopeDecay])
 }
 
 func GetInstrumentKeyRangeStart(region *InstrumentRegion) int32 {
-	return int32(region.gs[GEN_KeyRange]) & 0xFF
+	return int32(region.gs[gen_KeyRange]) & 0xFF
 }
 
 func GetInstrumentKeyRangeEnd(region *InstrumentRegion) int32 {
-	return (int32(region.gs[GEN_KeyRange]) >> 8) & 0xFF
+	return (int32(region.gs[gen_KeyRange]) >> 8) & 0xFF
 }
 
 func GetInstrumentVelocityRangeStart(region *InstrumentRegion) int32 {
-	return int32(region.gs[GEN_VelocityRange]) & 0xFF
+	return int32(region.gs[gen_VelocityRange]) & 0xFF
 }
 
 func GetInstrumentVelocityRangeEnd(region *InstrumentRegion) int32 {
-	return (int32(region.gs[GEN_VelocityRange]) >> 8) & 0xFF
+	return (int32(region.gs[gen_VelocityRange]) >> 8) & 0xFF
 }
 
 func GetInstrumentInitialAttenuation(region *InstrumentRegion) float32 {
-	return float32(0.1) * float32(region.gs[GEN_InitialAttenuation])
+	return float32(0.1) * float32(region.gs[gen_InitialAttenuation])
 }
 
 func GetInstrumentCoarseTune(region *InstrumentRegion) int32 {
-	return int32(region.gs[GEN_CoarseTune])
+	return int32(region.gs[gen_CoarseTune])
 }
 
 func GetInstrumentFineTune(region *InstrumentRegion) int32 {
-	return int32(region.gs[GEN_FineTune]) + int32(region.Sample.PitchCorrection)
+	return int32(region.gs[gen_FineTune]) + int32(region.Sample.PitchCorrection)
 }
 
 func GetInstrumentSampleModes(region *InstrumentRegion) int32 {
-	if region.gs[GEN_SampleModes] != 2 {
-		return int32(region.gs[GEN_SampleModes])
+	if region.gs[gen_SampleModes] != 2 {
+		return int32(region.gs[gen_SampleModes])
 	} else {
 		return 0
 	}
 }
 
 func GetInstrumentScaleTuning(region *InstrumentRegion) int32 {
-	return int32(region.gs[GEN_ScaleTuning])
+	return int32(region.gs[gen_ScaleTuning])
 }
 
 func GetInstrumentExclusiveClass(region *InstrumentRegion) int32 {
-	return int32(region.gs[GEN_ExclusiveClass])
+	return int32(region.gs[gen_ExclusiveClass])
 }
 
 func GetInstrumentRootKey(region *InstrumentRegion) int32 {
-	if region.gs[GEN_OverridingRootKey] != -1 {
-		return int32(region.gs[GEN_OverridingRootKey])
+	if region.gs[gen_OverridingRootKey] != -1 {
+		return int32(region.gs[gen_OverridingRootKey])
 	} else {
 		return int32(region.Sample.OriginalPitch)
 	}

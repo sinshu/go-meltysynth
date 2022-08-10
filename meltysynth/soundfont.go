@@ -45,7 +45,7 @@ func NewSoundFont(reader io.Reader) (*SoundFont, error) {
 
 	result := new(SoundFont)
 
-	result.Info, err = NewSoundFontInfo(reader)
+	result.Info, err = newSoundFontInfo(reader)
 	if err != nil {
 		return nil, err
 	}

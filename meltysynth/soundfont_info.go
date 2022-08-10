@@ -20,7 +20,7 @@ type SoundFontInfo struct {
 	Tools             string
 }
 
-func NewSoundFontInfo(reader io.Reader) (*SoundFontInfo, error) {
+func newSoundFontInfo(reader io.Reader) (*SoundFontInfo, error) {
 
 	var err error
 
@@ -68,7 +68,7 @@ func NewSoundFontInfo(reader io.Reader) (*SoundFontInfo, error) {
 		switch id {
 
 		case "ifil":
-			result.Version, err = NewSoundFontVersion(reader)
+			result.Version, err = newSoundFontVersion(reader)
 		case "isng":
 			result.TargetSoundEngine, err = readFixedLengthString(reader, size)
 		case "INAM":
@@ -76,7 +76,7 @@ func NewSoundFontInfo(reader io.Reader) (*SoundFontInfo, error) {
 		case "irom":
 			result.RomName, err = readFixedLengthString(reader, size)
 		case "iver":
-			result.RomVersion, err = NewSoundFontVersion(reader)
+			result.RomVersion, err = newSoundFontVersion(reader)
 		case "ICRD":
 			result.CreationDate, err = readFixedLengthString(reader, size)
 		case "IENG":

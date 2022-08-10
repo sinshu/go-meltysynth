@@ -10,7 +10,7 @@ type SoundFontVersion struct {
 	Minor int16
 }
 
-func NewSoundFontVersion(reader io.Reader) (SoundFontVersion, error) {
+func newSoundFontVersion(reader io.Reader) (SoundFontVersion, error) {
 
 	var result SoundFontVersion
 	var err error
