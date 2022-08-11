@@ -17,12 +17,12 @@ func readInstrumentsFromChunk(reader io.Reader, size int32) ([]*instrumentInfo, 
 	var err error
 
 	if size%22 != 0 {
-		return nil, errors.New("The instrument list is invalid.")
+		return nil, errors.New("the instrument list is invalid")
 	}
 
 	count := size / 22
 
-	instruments := make([]*instrumentInfo, count, count)
+	instruments := make([]*instrumentInfo, count)
 
 	for i := int32(0); i < count; i++ {
 

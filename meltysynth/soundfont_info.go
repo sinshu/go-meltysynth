@@ -30,7 +30,7 @@ func newSoundFontInfo(reader io.Reader) (*SoundFontInfo, error) {
 		return nil, err
 	}
 	if chunkId != "LIST" {
-		return nil, errors.New("The LIST chunk was not found.")
+		return nil, errors.New("the list chunk was not found")
 	}
 
 	var pos int32 = 0
@@ -42,8 +42,11 @@ func newSoundFontInfo(reader io.Reader) (*SoundFontInfo, error) {
 
 	var listType string
 	listType, err = readFourCC(reader)
+	if err != nil {
+		return nil, err
+	}
 	if listType != "INFO" {
-		return nil, errors.New("The type of the LIST chunk must be 'INFO', but was '" + listType + "'.")
+		return nil, errors.New("the type of the list chunk must be 'INFO', but was '" + listType + "'")
 	}
 	pos += 4
 
@@ -90,7 +93,7 @@ func newSoundFontInfo(reader io.Reader) (*SoundFontInfo, error) {
 		case "ISFT":
 			result.Tools, err = readFixedLengthString(reader, size)
 		default:
-			return nil, errors.New("The INFO list contains an unknown ID '" + id + "'.")
+			return nil, errors.New("the info list contains an unknown id '" + id + "'")
 		}
 
 		if err != nil {

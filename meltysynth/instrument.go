@@ -19,7 +19,7 @@ func createInstrument(info *instrumentInfo, zones []*zone, samples []*SampleHead
 
 	zoneCount := info.zoneEndIndex - info.zoneStartIndex + 1
 	if zoneCount <= 0 {
-		return nil, errors.New("The instrument '" + info.name + "' has no zone.")
+		return nil, errors.New("the instrument '" + info.name + "' has no zone")
 	}
 
 	zoneSpan := zones[info.zoneStartIndex : info.zoneStartIndex+zoneCount]
@@ -37,13 +37,13 @@ func createInstruments(infos []*instrumentInfo, zones []*zone, samples []*Sample
 	var err error
 
 	if len(infos) <= 1 {
-		return nil, errors.New("No valid instrument was found.")
+		return nil, errors.New("no valid instrument was found")
 	}
 
 	// The last one is the terminator.
 	count := len(infos) - 1
 
-	instruments := make([]*Instrument, count, count)
+	instruments := make([]*Instrument, count)
 
 	for i := 0; i < count; i++ {
 		instruments[i], err = createInstrument(infos[i], zones, samples)

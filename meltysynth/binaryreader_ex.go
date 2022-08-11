@@ -13,7 +13,7 @@ func readFourCC(reader io.Reader) (string, error) {
 		return "", err
 	}
 	if n != 4 {
-		return "", errors.New("Failed to read the four CC.")
+		return "", errors.New("failed to read the four cc")
 	}
 
 	for i := 0; i < 4; i++ {
@@ -28,13 +28,13 @@ func readFourCC(reader io.Reader) (string, error) {
 
 func readFixedLengthString(reader io.Reader, length int32) (string, error) {
 
-	var data []byte = make([]byte, length, length)
+	var data []byte = make([]byte, length)
 	n, err := reader.Read(data[:])
 	if err != nil {
 		return "", err
 	}
 	if n != int(length) {
-		return "", errors.New("Failed to read the fixed-length string.")
+		return "", errors.New("failed to read the fixed-length string")
 	}
 
 	var actualLength int32

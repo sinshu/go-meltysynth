@@ -17,12 +17,12 @@ func readGeneratorsFromChunk(reader io.Reader, size int32) ([]generator, error) 
 	var err error
 
 	if size%4 != 0 {
-		return nil, errors.New("The generator list is invalid.")
+		return nil, errors.New("the generator list is invalid")
 	}
 
 	count := size/4 - 1
 
-	generators := make([]generator, count, count)
+	generators := make([]generator, count)
 
 	for i := int32(0); i < count; i++ {
 
@@ -46,12 +46,12 @@ func readGeneratorsFromChunk(reader io.Reader, size int32) ([]generator, error) 
 	}
 
 	// The last one is the terminator.
-	n, err = reader.Read(make([]byte, 4, 4))
+	n, err = reader.Read(make([]byte, 4))
 	if err != nil {
 		return nil, err
 	}
 	if n != 4 {
-		return nil, errors.New("Failed to read the generator list.")
+		return nil, errors.New("failed to read the generator list")
 	}
 
 	return generators, nil

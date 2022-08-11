@@ -19,19 +19,19 @@ func createPresetRegion(preset *Preset, global []generator, local []generator, i
 
 	if global != nil {
 		for i := 0; i < len(global); i++ {
-			setPresetRegionParameter(result, global[i])
+			result.setParameter(global[i])
 		}
 	}
 
 	if local != nil {
 		for i := 0; i < len(local); i++ {
-			setPresetRegionParameter(result, local[i])
+			result.setParameter(local[i])
 		}
 	}
 
 	id := result.gs[gen_Instrument]
 	if !(0 <= id && int(id) < len(instruments)) {
-		return nil, errors.New("The preset '" + preset.Name + "' contains an invalid instrument ID '" + strconv.Itoa(int(id)) + "'.")
+		return nil, errors.New("the preset '" + preset.Name + "' contains an invalid instrument ID '" + strconv.Itoa(int(id)) + "'")
 	}
 	result.Instrument = instruments[id]
 
@@ -51,7 +51,7 @@ func createPresetRegions(preset *Preset, zones []*zone, instruments []*Instrumen
 
 	if global != nil {
 		count := len(zones) - 1
-		regions := make([]*PresetRegion, count, count)
+		regions := make([]*PresetRegion, count)
 		for i := 0; i < count; i++ {
 			regions[i], err = createPresetRegion(preset, global.generators, zones[i+1].generators, instruments)
 			if err != nil {
@@ -62,176 +62,179 @@ func createPresetRegions(preset *Preset, zones []*zone, instruments []*Instrumen
 	} else {
 		// No global zone.
 		count := len(zones)
-		regions := make([]*PresetRegion, count, count)
+		regions := make([]*PresetRegion, count)
 		for i := 0; i < count; i++ {
 			regions[i], err = createPresetRegion(preset, nil, zones[i].generators, instruments)
+			if err != nil {
+				return nil, err
+			}
 		}
 		return regions, nil
 	}
 }
 
-func setPresetRegionParameter(region *PresetRegion, parameter generator) {
+func (region *PresetRegion) setParameter(parameter generator) {
 
 	index := parameter.generatorType
 
 	// Unknown generators should be ignored.
-	if 0 <= index && int(index) < len(region.gs) {
+	if 0 <= int(index) && int(index) < len(region.gs) {
 		region.gs[index] = int16(parameter.value)
 	}
 }
 
-func GetPresetModulationLfoToPitch(region *PresetRegion) int32 {
+func (region *PresetRegion) GetModulationLfoToPitch() int32 {
 	return int32(region.gs[gen_ModulationLfoToPitch])
 }
 
-func GetPresetVibratoLfoToPitch(region *PresetRegion) int32 {
+func (region *PresetRegion) GetVibratoLfoToPitch() int32 {
 	return int32(region.gs[gen_VibratoLfoToPitch])
 }
 
-func GetPresetModulationEnvelopeToPitch(region *PresetRegion) int32 {
+func (region *PresetRegion) GetModulationEnvelopeToPitch() int32 {
 	return int32(region.gs[gen_ModulationEnvelopeToPitch])
 }
 
-func GetPresetInitialFilterCutoffFrequency(region *PresetRegion) float32 {
+func (region *PresetRegion) GetInitialFilterCutoffFrequency() float32 {
 	return calcCentsToMultiplyingFactor(float32(region.gs[gen_InitialFilterCutoffFrequency]))
 }
 
-func GetPresetInitialFilterQ(region *PresetRegion) float32 {
+func (region *PresetRegion) GetInitialFilterQ() float32 {
 	return float32(0.1) * float32(region.gs[gen_InitialFilterQ])
 }
 
-func GetPresetModulationLfoToFilterCutoffFrequency(region *PresetRegion) int32 {
+func (region *PresetRegion) GetModulationLfoToFilterCutoffFrequency() int32 {
 	return int32(region.gs[gen_ModulationLfoToFilterCutoffFrequency])
 }
 
-func GetPresetModulationEnvelopeToFilterCutoffFrequency(region *PresetRegion) int32 {
+func (region *PresetRegion) GetModulationEnvelopeToFilterCutoffFrequency() int32 {
 	return int32(region.gs[gen_ModulationEnvelopeToFilterCutoffFrequency])
 }
 
-func GetPresetModulationLfoToVolume(region *PresetRegion) float32 {
+func (region *PresetRegion) GetModulationLfoToVolume() float32 {
 	return float32(0.1) * float32(region.gs[gen_ModulationLfoToVolume])
 }
 
-func GetPresetChorusEffectsSend(region *PresetRegion) float32 {
+func (region *PresetRegion) GetChorusEffectsSend() float32 {
 	return float32(0.1) * float32(region.gs[gen_ChorusEffectsSend])
 }
 
-func GetPresetReverbEffectsSend(region *PresetRegion) float32 {
+func (region *PresetRegion) GetReverbEffectsSend() float32 {
 	return float32(0.1) * float32(region.gs[gen_ReverbEffectsSend])
 }
 
-func GetPresetPan(region *PresetRegion) float32 {
+func (region *PresetRegion) GetPan() float32 {
 	return float32(0.1) * float32(region.gs[gen_Pan])
 }
 
-func GetPresetDelayModulationLfo(region *PresetRegion) float32 {
+func (region *PresetRegion) GetDelayModulationLfo() float32 {
 	return calcCentsToMultiplyingFactor(float32(region.gs[gen_DelayModulationLfo]))
 }
 
-func GetPresetFrequencyModulationLfo(region *PresetRegion) float32 {
+func (region *PresetRegion) GetFrequencyModulationLfo() float32 {
 	return calcCentsToMultiplyingFactor(float32(region.gs[gen_FrequencyModulationLfo]))
 }
 
-func GetPresetDelayVibratoLfo(region *PresetRegion) float32 {
+func (region *PresetRegion) GetDelayVibratoLfo() float32 {
 	return calcCentsToMultiplyingFactor(float32(region.gs[gen_DelayVibratoLfo]))
 }
 
-func GetPresetFrequencyVibratoLfo(region *PresetRegion) float32 {
+func (region *PresetRegion) GetFrequencyVibratoLfo() float32 {
 	return calcCentsToMultiplyingFactor(float32(region.gs[gen_FrequencyVibratoLfo]))
 }
 
-func GetPresetDelayModulationEnvelope(region *PresetRegion) float32 {
+func (region *PresetRegion) GetDelayModulationEnvelope() float32 {
 	return calcCentsToMultiplyingFactor(float32(region.gs[gen_DelayModulationEnvelope]))
 }
 
-func GetPresetAttackModulationEnvelope(region *PresetRegion) float32 {
+func (region *PresetRegion) GetAttackModulationEnvelope() float32 {
 	return calcCentsToMultiplyingFactor(float32(region.gs[gen_AttackModulationEnvelope]))
 }
 
-func GetPresetHoldModulationEnvelope(region *PresetRegion) float32 {
+func (region *PresetRegion) GetHoldModulationEnvelope() float32 {
 	return calcCentsToMultiplyingFactor(float32(region.gs[gen_HoldModulationEnvelope]))
 }
 
-func GetPresetDecayModulationEnvelope(region *PresetRegion) float32 {
+func (region *PresetRegion) GetDecayModulationEnvelope() float32 {
 	return calcCentsToMultiplyingFactor(float32(region.gs[gen_DecayModulationEnvelope]))
 }
 
-func GetPresetSustainModulationEnvelope(region *PresetRegion) float32 {
+func (region *PresetRegion) GetSustainModulationEnvelope() float32 {
 	return float32(0.1) * float32(region.gs[gen_SustainModulationEnvelope])
 }
 
-func GetPresetReleaseModulationEnvelope(region *PresetRegion) float32 {
+func (region *PresetRegion) GetReleaseModulationEnvelope() float32 {
 	return calcCentsToMultiplyingFactor(float32(region.gs[gen_ReleaseModulationEnvelope]))
 }
 
-func GetPresetKeyNumberToModulationEnvelopeHold(region *PresetRegion) int32 {
+func (region *PresetRegion) GetKeyNumberToModulationEnvelopeHold() int32 {
 	return int32(region.gs[gen_KeyNumberToModulationEnvelopeHold])
 }
 
-func GetPresetKeyNumberToModulationEnvelopeDecay(region *PresetRegion) int32 {
+func (region *PresetRegion) GetKeyNumberToModulationEnvelopeDecay() int32 {
 	return int32(region.gs[gen_KeyNumberToModulationEnvelopeDecay])
 }
 
-func GetPresetDelayVolumeEnvelope(region *PresetRegion) float32 {
+func (region *PresetRegion) GetDelayVolumeEnvelope() float32 {
 	return calcCentsToMultiplyingFactor(float32(region.gs[gen_DelayVolumeEnvelope]))
 }
 
-func GetPresetAttackVolumeEnvelope(region *PresetRegion) float32 {
+func (region *PresetRegion) GetAttackVolumeEnvelope() float32 {
 	return calcCentsToMultiplyingFactor(float32(region.gs[gen_AttackVolumeEnvelope]))
 }
 
-func GetPresetHoldVolumeEnvelope(region *PresetRegion) float32 {
+func (region *PresetRegion) GetHoldVolumeEnvelope() float32 {
 	return calcCentsToMultiplyingFactor(float32(region.gs[gen_HoldVolumeEnvelope]))
 }
 
-func GetPresetDecayVolumeEnvelope(region *PresetRegion) float32 {
+func (region *PresetRegion) GetDecayVolumeEnvelope() float32 {
 	return calcCentsToMultiplyingFactor(float32(region.gs[gen_DecayVolumeEnvelope]))
 }
 
-func GetPresetSustainVolumeEnvelope(region *PresetRegion) float32 {
+func (region *PresetRegion) GetSustainVolumeEnvelope() float32 {
 	return float32(0.1) * float32(region.gs[gen_SustainVolumeEnvelope])
 }
 
-func GetPresetReleaseVolumeEnvelope(region *PresetRegion) float32 {
+func (region *PresetRegion) GetReleaseVolumeEnvelope() float32 {
 	return calcCentsToMultiplyingFactor(float32(region.gs[gen_ReleaseVolumeEnvelope]))
 }
 
-func GetPresetKeyNumberToVolumeEnvelopeHold(region *PresetRegion) int32 {
+func (region *PresetRegion) GetKeyNumberToVolumeEnvelopeHold() int32 {
 	return int32(region.gs[gen_KeyNumberToVolumeEnvelopeHold])
 }
 
-func GetPresetKeyNumberToVolumeEnvelopeDecay(region *PresetRegion) int32 {
+func (region *PresetRegion) GetKeyNumberToVolumeEnvelopeDecay() int32 {
 	return int32(region.gs[gen_KeyNumberToVolumeEnvelopeDecay])
 }
 
-func GetPresetKeyRangeStart(region *PresetRegion) int32 {
+func (region *PresetRegion) GetKeyRangeStart() int32 {
 	return int32(region.gs[gen_KeyRange]) & 0xFF
 }
 
-func GetPresetKeyRangeEnd(region *PresetRegion) int32 {
+func (region *PresetRegion) GetKeyRangeEnd() int32 {
 	return (int32(region.gs[gen_KeyRange]) >> 8) & 0xFF
 }
 
-func GetPresetVelocityRangeStart(region *PresetRegion) int32 {
+func (region *PresetRegion) GetVelocityRangeStart() int32 {
 	return int32(region.gs[gen_VelocityRange]) & 0xFF
 }
 
-func GetPresetVelocityRangeEnd(region *PresetRegion) int32 {
+func (region *PresetRegion) GetVelocityRangeEnd() int32 {
 	return (int32(region.gs[gen_VelocityRange]) >> 8) & 0xFF
 }
 
-func GetPresetInitialAttenuation(region *PresetRegion) float32 {
+func (region *PresetRegion) GetInitialAttenuation() float32 {
 	return float32(0.1) * float32(region.gs[gen_InitialAttenuation])
 }
 
-func GetPresetCoarseTune(region *PresetRegion) int32 {
+func (region *PresetRegion) GetCoarseTune() int32 {
 	return int32(region.gs[gen_CoarseTune])
 }
 
-func GetPresetFineTune(region *PresetRegion) int32 {
+func (region *PresetRegion) GetFineTune() int32 {
 	return int32(region.gs[gen_FineTune])
 }
 
-func GetPresetScaleTuning(region *PresetRegion) int32 {
+func (region *PresetRegion) GetScaleTuning() int32 {
 	return int32(region.gs[gen_ScaleTuning])
 }

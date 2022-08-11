@@ -27,7 +27,7 @@ func newOscillator(synthesizer *Synthesizer) *oscillator {
 	return result
 }
 
-func startOscillator(oscillator *oscillator, data []int16, loopMode int32, sampleRate int32, start int32, end int32, startLoop int32, endLoop int32, rootKey int32, coarseTune int32, fineTune int32, scaleTuning int32) {
+func (oscillator *oscillator) begin(data []int16, loopMode int32, sampleRate int32, start int32, end int32, startLoop int32, endLoop int32, rootKey int32, coarseTune int32, fineTune int32, scaleTuning int32) {
 
 	oscillator.data = data
 	oscillator.loopMode = loopMode
@@ -51,30 +51,30 @@ func startOscillator(oscillator *oscillator, data []int16, loopMode int32, sampl
 	oscillator.position = float64(start)
 }
 
-func releaseOscillator(oscillator *oscillator) {
+func (oscillator *oscillator) release() {
 
 	if oscillator.loopMode == 3 {
 		oscillator.looping = false
 	}
 }
 
-func processOscillator(oscillator *oscillator, block []float32, pitch float32) bool {
+func (oscillator *oscillator) process(block []float32, pitch float32) bool {
 
 	pitchChange := oscillator.pitchChangeScale*(pitch-float32(oscillator.rootKey)) + oscillator.tune
 	pitchRatio := float64(oscillator.sampleRateRatio) * math.Pow(float64(2), float64(pitchChange)/float64(12))
-	return fillBlock(oscillator, block, pitchRatio)
+	return oscillator.fillBlock(block, pitchRatio)
 }
 
-func fillBlock(oscillator *oscillator, block []float32, pitchRatio float64) bool {
+func (oscillator *oscillator) fillBlock(block []float32, pitchRatio float64) bool {
 
 	if oscillator.looping {
-		return fillBlock_Continuous(oscillator, block, pitchRatio)
+		return oscillator.fillBlock_Continuous(block, pitchRatio)
 	} else {
-		return fillBlock_NoLoop(oscillator, block, pitchRatio)
+		return oscillator.fillBlock_NoLoop(block, pitchRatio)
 	}
 }
 
-func fillBlock_NoLoop(oscillator *oscillator, block []float32, pitchRatio float64) bool {
+func (oscillator *oscillator) fillBlock_NoLoop(block []float32, pitchRatio float64) bool {
 
 	blockLength := len(block)
 
@@ -104,7 +104,7 @@ func fillBlock_NoLoop(oscillator *oscillator, block []float32, pitchRatio float6
 	return true
 }
 
-func fillBlock_Continuous(oscillator *oscillator, block []float32, pitchRatio float64) bool {
+func (oscillator *oscillator) fillBlock_Continuous(block []float32, pitchRatio float64) bool {
 
 	blockLength := len(block)
 

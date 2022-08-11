@@ -36,19 +36,19 @@ func createInstrumentRegion(instrument *Instrument, global []generator, local []
 
 	if global != nil {
 		for i := 0; i < len(global); i++ {
-			setInstrumentRegionParameter(result, global[i])
+			result.setParameter(global[i])
 		}
 	}
 
 	if local != nil {
 		for i := 0; i < len(local); i++ {
-			setInstrumentRegionParameter(result, local[i])
+			result.setParameter(local[i])
 		}
 	}
 
 	id := result.gs[gen_SampleID]
 	if !(0 <= id && int(id) < len(samples)) {
-		return nil, errors.New("The instrument '" + instrument.Name + "' contains an invalid sample ID '" + strconv.Itoa(int(id)) + "'.")
+		return nil, errors.New("the instrument '" + instrument.Name + "' contains an invalid sample ID '" + strconv.Itoa(int(id)) + "'")
 	}
 	result.Sample = samples[id]
 
@@ -68,7 +68,7 @@ func createInstrumentRegions(instrument *Instrument, zones []*zone, samples []*S
 
 	if global != nil {
 		count := len(zones) - 1
-		regions := make([]*InstrumentRegion, count, count)
+		regions := make([]*InstrumentRegion, count)
 		for i := 0; i < count; i++ {
 			regions[i], err = createInstrumentRegion(instrument, global.generators, zones[i+1].generators, samples)
 			if err != nil {
@@ -79,7 +79,7 @@ func createInstrumentRegions(instrument *Instrument, zones []*zone, samples []*S
 	} else {
 		// No global zone.
 		count := len(zones)
-		regions := make([]*InstrumentRegion, count, count)
+		regions := make([]*InstrumentRegion, count)
 		for i := 0; i < count; i++ {
 			regions[i], err = createInstrumentRegion(instrument, nil, zones[i].generators, samples)
 			if err != nil {
@@ -90,201 +90,201 @@ func createInstrumentRegions(instrument *Instrument, zones []*zone, samples []*S
 	}
 }
 
-func setInstrumentRegionParameter(region *InstrumentRegion, parameter generator) {
+func (region *InstrumentRegion) setParameter(parameter generator) {
 
 	index := parameter.generatorType
 
 	// Unknown generators should be ignored.
-	if 0 <= index && int(index) < len(region.gs) {
+	if 0 <= int(index) && int(index) < len(region.gs) {
 		region.gs[index] = int16(parameter.value)
 	}
 }
 
-func GetInstrumentSampleStart(region *InstrumentRegion) int32 {
-	return region.Sample.Start + GetInstrumentStartAddressOffset(region)
+func (region *InstrumentRegion) GetSampleStart() int32 {
+	return region.Sample.Start + region.GetStartAddressOffset()
 }
 
-func GetInstrumentSampleEnd(region *InstrumentRegion) int32 {
-	return region.Sample.End + GetInstrumentEndAddressOffset(region)
+func (region *InstrumentRegion) GetSampleEnd() int32 {
+	return region.Sample.End + region.GetEndAddressOffset()
 }
 
-func GetInstrumentSampleStartLoop(region *InstrumentRegion) int32 {
-	return region.Sample.StartLoop + GetInstrumentStartLoopAddressOffset(region)
+func (region *InstrumentRegion) GetSampleStartLoop() int32 {
+	return region.Sample.StartLoop + region.GetStartLoopAddressOffset()
 }
 
-func GetInstrumentSampleEndLoop(region *InstrumentRegion) int32 {
-	return region.Sample.EndLoop + GetInstrumentEndLoopAddressOffset(region)
+func (region *InstrumentRegion) GetSampleEndLoop() int32 {
+	return region.Sample.EndLoop + region.GetEndLoopAddressOffset()
 }
 
-func GetInstrumentStartAddressOffset(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetStartAddressOffset() int32 {
 	return 32768*int32(region.gs[gen_StartAddressCoarseOffset]) + int32(region.gs[gen_StartAddressOffset])
 }
 
-func GetInstrumentEndAddressOffset(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetEndAddressOffset() int32 {
 	return 32768*int32(region.gs[gen_EndAddressCoarseOffset]) + int32(region.gs[gen_EndAddressOffset])
 }
 
-func GetInstrumentStartLoopAddressOffset(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetStartLoopAddressOffset() int32 {
 	return 32768*int32(region.gs[gen_StartLoopAddressCoarseOffset]) + int32(region.gs[gen_StartLoopAddressOffset])
 }
 
-func GetInstrumentEndLoopAddressOffset(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetEndLoopAddressOffset() int32 {
 	return 32768*int32(region.gs[gen_EndLoopAddressCoarseOffset]) + int32(region.gs[gen_EndLoopAddressOffset])
 }
 
-func GetInstrumentModulationLfoToPitch(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetModulationLfoToPitch() int32 {
 	return int32(region.gs[gen_ModulationLfoToPitch])
 }
 
-func GetInstrumentVibratoLfoToPitch(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetVibratoLfoToPitch() int32 {
 	return int32(region.gs[gen_VibratoLfoToPitch])
 }
 
-func GetInstrumentModulationEnvelopeToPitch(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetModulationEnvelopeToPitch() int32 {
 	return int32(region.gs[gen_ModulationEnvelopeToPitch])
 }
 
-func GetInstrumentInitialFilterCutoffFrequency(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetInitialFilterCutoffFrequency() float32 {
 	return calcCentsToHertz(float32(region.gs[gen_InitialFilterCutoffFrequency]))
 }
 
-func GetInstrumentInitialFilterQ(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetInitialFilterQ() float32 {
 	return float32(0.1) * float32(region.gs[gen_InitialFilterQ])
 }
 
-func GetInstrumentModulationLfoToFilterCutoffFrequency(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetModulationLfoToFilterCutoffFrequency() int32 {
 	return int32(region.gs[gen_ModulationLfoToFilterCutoffFrequency])
 }
 
-func GetInstrumentModulationEnvelopeToFilterCutoffFrequency(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetModulationEnvelopeToFilterCutoffFrequency() int32 {
 	return int32(region.gs[gen_ModulationEnvelopeToFilterCutoffFrequency])
 }
 
-func GetInstrumentModulationLfoToVolume(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetModulationLfoToVolume() float32 {
 	return float32(0.1) * float32(region.gs[gen_ModulationLfoToVolume])
 }
 
-func GetInstrumentChorusEffectsSend(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetChorusEffectsSend() float32 {
 	return float32(0.1) * float32(region.gs[gen_ChorusEffectsSend])
 }
 
-func GetInstrumentReverbEffectsSend(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetReverbEffectsSend() float32 {
 	return float32(0.1) * float32(region.gs[gen_ReverbEffectsSend])
 }
 
-func GetInstrumentPan(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetPan() float32 {
 	return float32(0.1) * float32(region.gs[gen_Pan])
 }
 
-func GetInstrumentDelayModulationLfo(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetDelayModulationLfo() float32 {
 	return calcTimecentsToSeconds(float32(region.gs[gen_DelayModulationLfo]))
 }
 
-func GetInstrumentFrequencyModulationLfo(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetFrequencyModulationLfo() float32 {
 	return calcCentsToHertz(float32(region.gs[gen_FrequencyModulationLfo]))
 }
 
-func GetInstrumentDelayVibratoLfo(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetDelayVibratoLfo() float32 {
 	return calcTimecentsToSeconds(float32(region.gs[gen_DelayVibratoLfo]))
 }
 
-func GetInstrumentFrequencyVibratoLfo(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetFrequencyVibratoLfo() float32 {
 	return calcCentsToHertz(float32(region.gs[gen_FrequencyVibratoLfo]))
 }
 
-func GetInstrumentDelayModulationEnvelope(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetDelayModulationEnvelope() float32 {
 	return calcTimecentsToSeconds(float32(region.gs[gen_DelayModulationEnvelope]))
 }
 
-func GetInstrumentAttackModulationEnvelope(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetAttackModulationEnvelope() float32 {
 	return calcTimecentsToSeconds(float32(region.gs[gen_AttackModulationEnvelope]))
 }
 
-func GetInstrumentHoldModulationEnvelope(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetHoldModulationEnvelope() float32 {
 	return calcTimecentsToSeconds(float32(region.gs[gen_HoldModulationEnvelope]))
 }
 
-func GetInstrumentDecayModulationEnvelope(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetDecayModulationEnvelope() float32 {
 	return calcTimecentsToSeconds(float32(region.gs[gen_DecayModulationEnvelope]))
 }
 
-func GetInstrumentSustainModulationEnvelope(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetSustainModulationEnvelope() float32 {
 	return float32(0.1) * float32(region.gs[gen_SustainModulationEnvelope])
 }
 
-func GetInstrumentReleaseModulationEnvelope(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetReleaseModulationEnvelope() float32 {
 	return calcTimecentsToSeconds(float32(region.gs[gen_ReleaseModulationEnvelope]))
 }
 
-func GetInstrumentKeyNumberToModulationEnvelopeHold(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetKeyNumberToModulationEnvelopeHold() int32 {
 	return int32(region.gs[gen_KeyNumberToModulationEnvelopeHold])
 }
 
-func GetInstrumentKeyNumberToModulationEnvelopeDecay(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetKeyNumberToModulationEnvelopeDecay() int32 {
 	return int32(region.gs[gen_KeyNumberToModulationEnvelopeDecay])
 }
 
-func GetInstrumentDelayVolumeEnvelope(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetDelayVolumeEnvelope() float32 {
 	return calcTimecentsToSeconds(float32(region.gs[gen_DelayVolumeEnvelope]))
 }
 
-func GetInstrumentAttackVolumeEnvelope(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetAttackVolumeEnvelope() float32 {
 	return calcTimecentsToSeconds(float32(region.gs[gen_AttackVolumeEnvelope]))
 }
 
-func GetInstrumentHoldVolumeEnvelope(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetHoldVolumeEnvelope() float32 {
 	return calcTimecentsToSeconds(float32(region.gs[gen_HoldVolumeEnvelope]))
 }
 
-func GetInstrumentDecayVolumeEnvelope(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetDecayVolumeEnvelope() float32 {
 	return calcTimecentsToSeconds(float32(region.gs[gen_DecayVolumeEnvelope]))
 }
 
-func GetInstrumentSustainVolumeEnvelope(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetSustainVolumeEnvelope() float32 {
 	return float32(0.1) * float32(region.gs[gen_SustainVolumeEnvelope])
 }
 
-func GetInstrumentReleaseVolumeEnvelope(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetReleaseVolumeEnvelope() float32 {
 	return calcTimecentsToSeconds(float32(region.gs[gen_ReleaseVolumeEnvelope]))
 }
 
-func GetInstrumentKeyNumberToVolumeEnvelopeHold(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetKeyNumberToVolumeEnvelopeHold() int32 {
 	return int32(region.gs[gen_KeyNumberToVolumeEnvelopeHold])
 }
 
-func GetInstrumentKeyNumberToVolumeEnvelopeDecay(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetKeyNumberToVolumeEnvelopeDecay() int32 {
 	return int32(region.gs[gen_KeyNumberToVolumeEnvelopeDecay])
 }
 
-func GetInstrumentKeyRangeStart(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetKeyRangeStart() int32 {
 	return int32(region.gs[gen_KeyRange]) & 0xFF
 }
 
-func GetInstrumentKeyRangeEnd(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetKeyRangeEnd() int32 {
 	return (int32(region.gs[gen_KeyRange]) >> 8) & 0xFF
 }
 
-func GetInstrumentVelocityRangeStart(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetVelocityRangeStart() int32 {
 	return int32(region.gs[gen_VelocityRange]) & 0xFF
 }
 
-func GetInstrumentVelocityRangeEnd(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetVelocityRangeEnd() int32 {
 	return (int32(region.gs[gen_VelocityRange]) >> 8) & 0xFF
 }
 
-func GetInstrumentInitialAttenuation(region *InstrumentRegion) float32 {
+func (region *InstrumentRegion) GetInitialAttenuation() float32 {
 	return float32(0.1) * float32(region.gs[gen_InitialAttenuation])
 }
 
-func GetInstrumentCoarseTune(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetCoarseTune() int32 {
 	return int32(region.gs[gen_CoarseTune])
 }
 
-func GetInstrumentFineTune(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetFineTune() int32 {
 	return int32(region.gs[gen_FineTune]) + int32(region.Sample.PitchCorrection)
 }
 
-func GetInstrumentSampleModes(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetSampleModes() int32 {
 	if region.gs[gen_SampleModes] != 2 {
 		return int32(region.gs[gen_SampleModes])
 	} else {
@@ -292,15 +292,15 @@ func GetInstrumentSampleModes(region *InstrumentRegion) int32 {
 	}
 }
 
-func GetInstrumentScaleTuning(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetScaleTuning() int32 {
 	return int32(region.gs[gen_ScaleTuning])
 }
 
-func GetInstrumentExclusiveClass(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetExclusiveClass() int32 {
 	return int32(region.gs[gen_ExclusiveClass])
 }
 
-func GetInstrumentRootKey(region *InstrumentRegion) int32 {
+func (region *InstrumentRegion) GetRootKey() int32 {
 	if region.gs[gen_OverridingRootKey] != -1 {
 		return int32(region.gs[gen_OverridingRootKey])
 	} else {

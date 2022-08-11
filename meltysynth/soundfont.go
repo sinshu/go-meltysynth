@@ -25,7 +25,7 @@ func NewSoundFont(reader io.Reader) (*SoundFont, error) {
 		return nil, err
 	}
 	if chunkId != "RIFF" {
-		return nil, errors.New("The RIFF chunk was not found.")
+		return nil, errors.New("the riff chunk was not found")
 	}
 
 	var size int32
@@ -40,7 +40,7 @@ func NewSoundFont(reader io.Reader) (*SoundFont, error) {
 		return nil, err
 	}
 	if formType != "sfbk" {
-		return nil, errors.New("The type of the RIFF chunk must be 'sfbk', but was '" + formType + "'.")
+		return nil, errors.New("the type of the riff chunk must be 'sfbk', but was '" + formType + "'")
 	}
 
 	result := new(SoundFont)

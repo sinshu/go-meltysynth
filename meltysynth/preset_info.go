@@ -22,12 +22,12 @@ func readPresetsFromChunk(reader io.Reader, size int32) ([]*presetInfo, error) {
 	var err error
 
 	if size%38 != 0 {
-		return nil, errors.New("The preset list is invalid.")
+		return nil, errors.New("the preset list is invalid")
 	}
 
 	count := size / 38
 
-	presets := make([]*presetInfo, count, count)
+	presets := make([]*presetInfo, count)
 
 	for i := int32(0); i < count; i++ {
 

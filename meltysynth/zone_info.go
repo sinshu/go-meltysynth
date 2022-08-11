@@ -18,12 +18,12 @@ func readZonesFromChunk(reader io.Reader, size int32) ([]*zoneInfo, error) {
 	var err error
 
 	if size%4 != 0 {
-		return nil, errors.New("The zone list is invalid.")
+		return nil, errors.New("the zone list is invalid")
 	}
 
 	count := size / 4
 
-	zones := make([]*zoneInfo, count, count)
+	zones := make([]*zoneInfo, count)
 
 	for i := int32(0); i < count; i++ {
 

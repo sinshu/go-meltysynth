@@ -22,7 +22,7 @@ func newSoundFontSampleData(reader io.Reader) (*soundFontSampleData, error) {
 		return nil, err
 	}
 	if chunkId != "LIST" {
-		return nil, errors.New("The LIST chunk was not found.")
+		return nil, errors.New("the list chunk was not found")
 	}
 
 	var pos int32 = 0
@@ -34,8 +34,11 @@ func newSoundFontSampleData(reader io.Reader) (*soundFontSampleData, error) {
 
 	var listType string
 	listType, err = readFourCC(reader)
+	if err != nil {
+		return nil, err
+	}
 	if listType != "sdta" {
-		return nil, errors.New("The type of the LIST chunk must be 'sdta', but was '" + listType + "'.")
+		return nil, errors.New("the type of the list chunk must be 'sdta', but was '" + listType + "'")
 	}
 	pos += 4
 
@@ -61,18 +64,18 @@ func newSoundFontSampleData(reader io.Reader) (*soundFontSampleData, error) {
 
 		case "smpl":
 			result.bitsPerSample = 16
-			result.samples = make([]int16, size/2, size/2)
+			result.samples = make([]int16, size/2)
 			err = binary.Read(reader, binary.LittleEndian, result.samples)
 
 		case "sm24":
 			// 24 bit audio is not supported.
-			n, err = reader.Read(make([]byte, size, size))
+			n, err = reader.Read(make([]byte, size))
 			if n != int(size) {
-				return nil, errors.New("Failed to read the 24 bit audio data.")
+				return nil, errors.New("failed to read the 24 bit audio data")
 			}
 
 		default:
-			return nil, errors.New("The INFO list contains an unknown ID '" + id + "'.")
+			return nil, errors.New("the info list contains an unknown id '" + id + "'")
 		}
 
 		if err != nil {
@@ -83,7 +86,7 @@ func newSoundFontSampleData(reader io.Reader) (*soundFontSampleData, error) {
 	}
 
 	if result.samples == nil {
-		return nil, errors.New("No valid sample data was found.")
+		return nil, errors.New("no valid sample data was found")
 	}
 
 	return result, nil

@@ -22,7 +22,7 @@ func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
 		return nil, err
 	}
 	if chunkId != "LIST" {
-		return nil, errors.New("The LIST chunk was not found.")
+		return nil, errors.New("the list chunk was not found")
 	}
 
 	var pos int32 = 0
@@ -34,8 +34,11 @@ func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
 
 	var listType string
 	listType, err = readFourCC(reader)
+	if err != nil {
+		return nil, err
+	}
 	if listType != "pdta" {
-		return nil, errors.New("The type of the LIST chunk must be 'pdta', but was '" + listType + "'.")
+		return nil, errors.New("the type of the list chunk must be 'pdta', but was '" + listType + "'")
 	}
 	pos += 4
 
@@ -84,7 +87,7 @@ func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
 		case "shdr":
 			sampleHeaders, err = readSampleHeadersFromChunk(reader, size)
 		default:
-			return nil, errors.New("The INFO list contains an unknown ID '" + id + "'.")
+			return nil, errors.New("The info list contains an unknown id '" + id + "'")
 		}
 
 		if err != nil {
@@ -95,25 +98,25 @@ func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
 	}
 
 	if presetInfos == nil {
-		return nil, errors.New("The PHDR sub-chunk was not found.")
+		return nil, errors.New("the phdr sub-chunk was not found")
 	}
 	if presetBag == nil {
-		return nil, errors.New("The PBAG sub-chunk was not found.")
+		return nil, errors.New("the pbag sub-chunk was not found")
 	}
 	if presetGenerators == nil {
-		return nil, errors.New("The PGEN sub-chunk was not found.")
+		return nil, errors.New("the pgen sub-chunk was not found")
 	}
 	if instrumentInfos == nil {
-		return nil, errors.New("The INST sub-chunk was not found.")
+		return nil, errors.New("the inst sub-chunk was not found")
 	}
 	if instrumentBag == nil {
-		return nil, errors.New("The IBAG sub-chunk was not found.")
+		return nil, errors.New("the ibag sub-chunk was not found")
 	}
 	if instrumentGenerators == nil {
-		return nil, errors.New("The IGEN sub-chunk was not found.")
+		return nil, errors.New("the igen sub-chunk was not found")
 	}
 	if sampleHeaders == nil {
-		return nil, errors.New("The SHDR sub-chunk was not found.")
+		return nil, errors.New("the shdr sub-chunk was not found")
 	}
 
 	parameters := new(soundFontParameters)
@@ -121,10 +124,24 @@ func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
 	parameters.sampleHeaders = sampleHeaders
 
 	instrumentZones, err := createZones(instrumentBag, instrumentGenerators)
+	if err != nil {
+		return nil, err
+	}
+
 	parameters.instruments, err = createInstruments(instrumentInfos, instrumentZones, sampleHeaders)
+	if err != nil {
+		return nil, err
+	}
 
 	presetZones, err := createZones(presetBag, presetGenerators)
+	if err != nil {
+		return nil, err
+	}
+
 	parameters.presets, err = createPresets(presetInfos, presetZones, parameters.instruments)
+	if err != nil {
+		return nil, err
+	}
 
 	return parameters, nil
 }

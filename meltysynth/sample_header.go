@@ -25,12 +25,12 @@ func readSampleHeadersFromChunk(reader io.Reader, size int32) ([]*SampleHeader, 
 	var err error
 
 	if size%46 != 0 {
-		return nil, errors.New("The sample header list is invalid.")
+		return nil, errors.New("the sample header list is invalid")
 	}
 
 	count := size/46 - 1
 
-	headers := make([]*SampleHeader, count, count)
+	headers := make([]*SampleHeader, count)
 
 	for i := int32(0); i < count; i++ {
 
@@ -108,12 +108,12 @@ func readSampleHeadersFromChunk(reader io.Reader, size int32) ([]*SampleHeader, 
 	}
 
 	// The last one is the terminator.
-	n, err = reader.Read(make([]byte, 46, 46))
+	n, err = reader.Read(make([]byte, 46))
 	if err != nil {
 		return nil, err
 	}
 	if n != 46 {
-		return nil, errors.New("Failed to read the sample header list.")
+		return nil, errors.New("failed to read the sample header list")
 	}
 
 	return headers, nil
