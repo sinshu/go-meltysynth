@@ -13,7 +13,7 @@ func readFourCC(reader io.Reader) (string, error) {
 		return "", err
 	}
 	if n != 4 {
-		return "", errors.New("failed to read the four cc")
+		return "", errors.New("failed to read the four-cc")
 	}
 
 	for i := 0; i < 4; i++ {

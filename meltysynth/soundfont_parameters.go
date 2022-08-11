@@ -87,7 +87,7 @@ func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
 		case "shdr":
 			sampleHeaders, err = readSampleHeadersFromChunk(reader, size)
 		default:
-			return nil, errors.New("The info list contains an unknown id '" + id + "'")
+			return nil, errors.New("the info list contains an unknown id '" + id + "'")
 		}
 
 		if err != nil {

@@ -31,7 +31,7 @@ func createPresetRegion(preset *Preset, global []generator, local []generator, i
 
 	id := result.gs[gen_Instrument]
 	if !(0 <= id && int(id) < len(instruments)) {
-		return nil, errors.New("the preset '" + preset.Name + "' contains an invalid instrument ID '" + strconv.Itoa(int(id)) + "'")
+		return nil, errors.New("the preset '" + preset.Name + "' contains an invalid instrument id '" + strconv.Itoa(int(id)) + "'")
 	}
 	result.Instrument = instruments[id]
 

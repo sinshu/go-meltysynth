@@ -48,7 +48,7 @@ func createInstrumentRegion(instrument *Instrument, global []generator, local []
 
 	id := result.gs[gen_SampleID]
 	if !(0 <= id && int(id) < len(samples)) {
-		return nil, errors.New("the instrument '" + instrument.Name + "' contains an invalid sample ID '" + strconv.Itoa(int(id)) + "'")
+		return nil, errors.New("the instrument '" + instrument.Name + "' contains an invalid sample id '" + strconv.Itoa(int(id)) + "'")
 	}
 	result.Sample = samples[id]
 
