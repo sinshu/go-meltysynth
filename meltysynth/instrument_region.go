@@ -100,6 +100,12 @@ func (region *InstrumentRegion) setParameter(parameter generator) {
 	}
 }
 
+func (region *InstrumentRegion) contains(key int32, velocity int32) bool {
+	containsKey := region.GetKeyRangeStart() <= key && key <= region.GetKeyRangeEnd()
+	containsVelocity := region.GetVelocityRangeStart() <= velocity && velocity <= region.GetVelocityRangeEnd()
+	return containsKey && containsVelocity
+}
+
 func (region *InstrumentRegion) GetSampleStart() int32 {
 	return region.Sample.Start + region.GetStartAddressOffset()
 }

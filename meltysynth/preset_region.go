@@ -83,6 +83,12 @@ func (region *PresetRegion) setParameter(parameter generator) {
 	}
 }
 
+func (region *PresetRegion) contains(key int32, velocity int32) bool {
+	containsKey := region.GetKeyRangeStart() <= key && key <= region.GetKeyRangeEnd()
+	containsVelocity := region.GetVelocityRangeStart() <= velocity && velocity <= region.GetVelocityRangeEnd()
+	return containsKey && containsVelocity
+}
+
 func (region *PresetRegion) GetModulationLfoToPitch() int32 {
 	return int32(region.gs[gen_ModulationLfoToPitch])
 }

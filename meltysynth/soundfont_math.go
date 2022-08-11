@@ -30,7 +30,7 @@ func calcLinearToDecibels(x float32) float32 {
 	return float32(float64(20) * math.Log10(float64(x)))
 }
 
-func calcKeyNumberToMultiplyingFactor(cents int, key int) float32 {
+func calcKeyNumberToMultiplyingFactor(cents int32, key int32) float32 {
 	return calcTimecentsToSeconds(float32(cents * (60 - key)))
 }
 

@@ -2,7 +2,7 @@ package meltysynth
 
 import "math"
 
-type modulationEmvelope struct {
+type modulationEnvelope struct {
 	synthesizer          *Synthesizer
 	attackSlope          float64
 	decaySlope           float64
@@ -19,13 +19,13 @@ type modulationEmvelope struct {
 	value                float32
 }
 
-func newModulationEnvelope(synthesizer *Synthesizer) *modulationEmvelope {
-	result := new(modulationEmvelope)
+func newModulationEnvelope(synthesizer *Synthesizer) *modulationEnvelope {
+	result := new(modulationEnvelope)
 	result.synthesizer = synthesizer
 	return result
 }
 
-func (envelope *modulationEmvelope) begin(delay float32, attack float32, hold float32, decay float32, sustain float32, release float32) {
+func (envelope *modulationEnvelope) start(delay float32, attack float32, hold float32, decay float32, sustain float32, release float32) {
 
 	envelope.attackSlope = 1 / float64(attack)
 	envelope.decaySlope = 1 / float64(decay)
@@ -48,14 +48,14 @@ func (envelope *modulationEmvelope) begin(delay float32, attack float32, hold fl
 	envelope.process(0)
 }
 
-func (envelope *modulationEmvelope) release() {
+func (envelope *modulationEnvelope) release() {
 
 	envelope.stage = env_Release
 	envelope.releaseEndTime += float64(envelope.processedSampleCount) / float64(envelope.synthesizer.SampleRate)
 	envelope.releaseLevel = envelope.value
 }
 
-func (envelope *modulationEmvelope) process(sampleCount int32) bool {
+func (envelope *modulationEnvelope) process(sampleCount int32) bool {
 
 	envelope.processedSampleCount += sampleCount
 

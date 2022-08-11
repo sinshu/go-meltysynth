@@ -9,8 +9,8 @@ type oscillator struct {
 	data             []int16
 	loopMode         int32
 	sampleRate       int32
-	start            int32
-	end              int32
+	sampleStart      int32
+	sampleEnd        int32
 	startLoop        int32
 	endLoop          int32
 	rootKey          int32
@@ -27,13 +27,13 @@ func newOscillator(synthesizer *Synthesizer) *oscillator {
 	return result
 }
 
-func (oscillator *oscillator) begin(data []int16, loopMode int32, sampleRate int32, start int32, end int32, startLoop int32, endLoop int32, rootKey int32, coarseTune int32, fineTune int32, scaleTuning int32) {
+func (oscillator *oscillator) start(data []int16, loopMode int32, sampleRate int32, start int32, end int32, startLoop int32, endLoop int32, rootKey int32, coarseTune int32, fineTune int32, scaleTuning int32) {
 
 	oscillator.data = data
 	oscillator.loopMode = loopMode
 	oscillator.sampleRate = sampleRate
-	oscillator.start = start
-	oscillator.end = end
+	oscillator.sampleStart = start
+	oscillator.sampleEnd = end
 	oscillator.startLoop = startLoop
 	oscillator.endLoop = endLoop
 	oscillator.rootKey = rootKey
@@ -82,7 +82,7 @@ func (oscillator *oscillator) fillBlock_NoLoop(block []float32, pitchRatio float
 
 		index := int32(oscillator.position)
 
-		if index >= oscillator.end {
+		if index >= oscillator.sampleEnd {
 			if t > 0 {
 				for i := t; i < blockLength; i++ {
 					block[i] = 0

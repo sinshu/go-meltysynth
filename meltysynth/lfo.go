@@ -17,7 +17,7 @@ func newLfo(synthesizer *Synthesizer) *lfo {
 	return result
 }
 
-func (lfo *lfo) begin(delay float32, frequency float32) {
+func (lfo *lfo) start(delay float32, frequency float32) {
 
 	if frequency > 1.0e-3 {
 
