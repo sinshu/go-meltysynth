@@ -42,7 +42,7 @@ func (oscillator *oscillator) start(data []int16, loopMode int32, sampleRate int
 	oscillator.pitchChangeScale = float32(0.01) * float32(scaleTuning)
 	oscillator.sampleRateRatio = float32(sampleRate) / float32(oscillator.synthesizer.SampleRate)
 
-	if loopMode == 0 {
+	if loopMode == loop_NoLoop {
 		oscillator.looping = false
 	} else {
 		oscillator.looping = true
@@ -53,7 +53,7 @@ func (oscillator *oscillator) start(data []int16, loopMode int32, sampleRate int
 
 func (oscillator *oscillator) release() {
 
-	if oscillator.loopMode == 3 {
+	if oscillator.loopMode == loop_LoopUntilNoteOff {
 		oscillator.looping = false
 	}
 }

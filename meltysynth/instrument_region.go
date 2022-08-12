@@ -294,7 +294,7 @@ func (region *InstrumentRegion) GetSampleModes() int32 {
 	if region.gs[gen_SampleModes] != 2 {
 		return int32(region.gs[gen_SampleModes])
 	} else {
-		return 0
+		return loop_NoLoop
 	}
 }
 

@@ -38,12 +38,18 @@ func main() {
 
 	synthesizer.Render(left, right)
 
+	buf := make([]float32, 2*len(left))
+	for i := 0; i < len(left); i++ {
+		buf[2*i] = left[i]
+		buf[2*i+1] = right[i]
+	}
+
 	dstFile, err := os.Create("out.pcm")
 	if err != nil {
 		panic("OMG4")
 	}
 
-	binary.Write(dstFile, binary.LittleEndian, left)
+	binary.Write(dstFile, binary.LittleEndian, buf)
 
 	fmt.Println("DONE!")
 }
