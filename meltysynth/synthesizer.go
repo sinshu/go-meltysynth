@@ -91,7 +91,7 @@ func NewSynthesizer(soundFont *SoundFont, settings *SynthesizerSettings) (*Synth
 	return result, nil
 }
 
-func (synthesizer *Synthesizer) processMidiMessage(channel int32, command int32, data1 int32, data2 int32) {
+func (synthesizer *Synthesizer) ProcessMidiMessage(channel int32, command int32, data1 int32, data2 int32) {
 
 	if !(0 <= channel && int(channel) < len(synthesizer.channels)) {
 		return

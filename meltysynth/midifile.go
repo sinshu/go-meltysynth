@@ -365,3 +365,7 @@ func discardData(reader io.Reader) error {
 
 	return nil
 }
+
+func (midiFile *MidiFile) GetLength() time.Duration {
+	return midiFile.times[len(midiFile.times)-1]
+}

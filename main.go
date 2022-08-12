@@ -1,68 +1,44 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/sinshu/go-meltysynth/meltysynth"
 )
 
 func main() {
 
-	srcFile, err := os.Open("PROGROCK.MID")
-	if err != nil {
-		panic(err)
+	sf2, _ := os.Open("TimGM6mb.sf2")
+	soundFont, _ := meltysynth.NewSoundFont(sf2)
+	sf2.Close()
+
+	settings := meltysynth.NewSynthesizerSettings(44100)
+	synthesizer, _ := meltysynth.NewSynthesizer(soundFont, settings)
+
+	mid, _ := os.Open("C:\\Windows\\Media\\flourish.mid")
+	midiFile, _ := meltysynth.NewMidiFile(mid)
+	mid.Close()
+
+	sequencer := meltysynth.NewMidiFileSequencer(synthesizer)
+	sequencer.Play(midiFile, true)
+
+	length := int(float64(settings.SampleRate) * float64(midiFile.GetLength()) / float64(time.Second))
+	left := make([]float32, length)
+	right := make([]float32, length)
+	sequencer.Render(left, right)
+
+	interleaved := make([]float32, 2*length)
+	for i := 0; i < length; i++ {
+		interleaved[2*i] = left[i]
+		interleaved[2*i+1] = right[i]
 	}
 
-	mf, err := meltysynth.NewMidiFile(srcFile)
-	if err != nil {
-		panic(err)
-	}
+	pcm, _ := os.Create("out.pcm")
+	binary.Write(pcm, binary.LittleEndian, interleaved)
+	pcm.Close()
 
-	fmt.Println(mf)
-
-	/*
-		srcFile, err := os.Open("timgm6mb.sf2")
-		if err != nil {
-			panic("OMG1")
-		}
-
-		soundFont, err := meltysynth.NewSoundFont(srcFile)
-		if err != nil {
-			panic("OMG2")
-		}
-
-		var sampleRate int32 = 44100
-
-		settings := meltysynth.NewSynthesizerSettings(sampleRate)
-
-		synthesizer, err := meltysynth.NewSynthesizer(soundFont, settings)
-		if err != nil {
-			panic("OMG3")
-		}
-
-		synthesizer.NoteOn(0, 60, 100)
-		synthesizer.NoteOn(0, 64, 100)
-		synthesizer.NoteOn(0, 67, 100)
-
-		left := make([]float32, 3*sampleRate)
-		right := make([]float32, 3*sampleRate)
-
-		synthesizer.Render(left, right)
-
-		buf := make([]float32, 2*len(left))
-		for i := 0; i < len(left); i++ {
-			buf[2*i] = left[i]
-			buf[2*i+1] = right[i]
-		}
-
-		dstFile, err := os.Create("out.pcm")
-		if err != nil {
-			panic("OMG4")
-		}
-
-		binary.Write(dstFile, binary.LittleEndian, buf)
-
-		fmt.Println("DONE!")
-	*/
+	fmt.Println("DONE!")
 }
