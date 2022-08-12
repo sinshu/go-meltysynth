@@ -156,7 +156,7 @@ func (voice *voice) process() bool {
 		return false
 	}
 
-	channelInfo := voice.synthesizer.Channels[voice.channel]
+	channelInfo := voice.synthesizer.channels[voice.channel]
 
 	voice.releaseIfNecessary(channelInfo)
 
