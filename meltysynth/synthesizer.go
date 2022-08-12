@@ -6,7 +6,7 @@ import (
 
 const (
 	synth_channelCount      int32 = 16
-	synth_percussionChannel int32 = 16
+	synth_percussionChannel int32 = 9
 )
 
 type Synthesizer struct {
