@@ -4,6 +4,14 @@ Go-MeltySynth is a SoundFont synthesizer written in Go, ported from [MeltySynth 
 
 
 
+## Demo
+
+https://www.youtube.com/watch?v=D1tagLPIlAc
+
+[![Youtube video](https://img.youtube.com/vi/D1tagLPIlAc/0.jpg)](https://www.youtube.com/watch?v=D1tagLPIlAc)
+
+
+
 ## Todo
 
 * __Wave synthesis__
