@@ -15,7 +15,7 @@ type SynthesizerSettings struct {
 	EnableReverbAndChorus bool
 }
 
-func newSynthesizerSettings(sampleRate int32) *SynthesizerSettings {
+func NewSynthesizerSettings(sampleRate int32) *SynthesizerSettings {
 
 	result := new(SynthesizerSettings)
 

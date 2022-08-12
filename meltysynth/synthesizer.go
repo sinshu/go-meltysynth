@@ -35,7 +35,7 @@ type Synthesizer struct {
 	MasterVolume float32
 }
 
-func newSynthesizer(soundFont *SoundFont, settings *SynthesizerSettings) (*Synthesizer, error) {
+func NewSynthesizer(soundFont *SoundFont, settings *SynthesizerSettings) (*Synthesizer, error) {
 
 	err := settings.validate()
 	if err != nil {
@@ -297,4 +297,62 @@ func (synthesizer *Synthesizer) Reset() {
 	}
 
 	synthesizer.blockRead = synthesizer.BlockSize
+}
+
+func (synthesizer *Synthesizer) Render(left []float32, right []float32) {
+
+	wrote := int32(0)
+	length := int32(len(left))
+	for wrote < length {
+		if synthesizer.blockRead == synthesizer.BlockSize {
+			synthesizer.renderBlock()
+			synthesizer.blockRead = 0
+		}
+
+		srcRem := synthesizer.BlockSize - synthesizer.blockRead
+		dstRem := int32(length - wrote)
+		rem := int32(math.Min(float64(srcRem), float64(dstRem)))
+
+		for i := int32(0); i < rem; i++ {
+			left[wrote+i] = synthesizer.blockLeft[synthesizer.blockRead+i]
+			right[wrote+i] = synthesizer.blockRight[synthesizer.blockRead+i]
+		}
+
+		synthesizer.blockRead += rem
+		wrote += rem
+	}
+}
+
+func (synthesizer *Synthesizer) renderBlock() {
+
+	synthesizer.voices.process()
+
+	for i := 0; i < int(synthesizer.BlockSize); i++ {
+		synthesizer.blockLeft[i] = 0
+		synthesizer.blockRight[i] = 0
+	}
+
+	for i := 0; i < int(synthesizer.voices.activeVoiceCount); i++ {
+		voice := synthesizer.voices.voices[i]
+		previousGainLeft := synthesizer.MasterVolume * voice.previousMixGainLeft
+		currentGainLeft := synthesizer.MasterVolume * voice.currentMixGainLeft
+		synthesizer.writeBlock(previousGainLeft, currentGainLeft, voice.block, synthesizer.blockLeft)
+		var previousGainRight = synthesizer.MasterVolume * voice.previousMixGainRight
+		var currentGainRight = synthesizer.MasterVolume * voice.currentMixGainRight
+		synthesizer.writeBlock(previousGainRight, currentGainRight, voice.block, synthesizer.blockRight)
+	}
+}
+
+func (synthesizer *Synthesizer) writeBlock(previousGain float32, currentGain float32, source []float32, destination []float32) {
+
+	if math.Max(float64(previousGain), float64(currentGain)) < float64(nonAudible) {
+		return
+	}
+
+	if math.Abs(float64(currentGain-previousGain)) < 1.0e-3 {
+		arrayMultiplyAdd(currentGain, source, destination)
+	} else {
+		step := synthesizer.inverseBlockSize * (currentGain - previousGain)
+		arrayMultiplyAddSlope(previousGain, step, source, destination)
+	}
 }

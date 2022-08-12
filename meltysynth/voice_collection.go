@@ -66,6 +66,27 @@ func (collection *voiceCollection) requestNew(region *InstrumentRegion, channel 
 	return candidate
 }
 
+func (collection *voiceCollection) process() {
+
+	var i int32 = 0
+
+	for {
+		if i == collection.activeVoiceCount {
+			return
+		}
+
+		if collection.voices[i].process() {
+			i++
+		} else {
+			collection.activeVoiceCount--
+
+			tmp := collection.voices[i]
+			collection.voices[i] = collection.voices[collection.activeVoiceCount]
+			collection.voices[collection.activeVoiceCount] = tmp
+		}
+	}
+}
+
 func (collection *voiceCollection) clear() {
 	collection.activeVoiceCount = 0
 }
