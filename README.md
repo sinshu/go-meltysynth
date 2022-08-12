@@ -25,12 +25,12 @@ Go-MeltySynth is a SoundFont synthesizer written in Go, ported from [MeltySynth 
     - [x] Pitch bend
     - [x] Tuning
 * __Effects__
-    - [] Reverb
-    - [] Chorus
+    - [ ] Reverb
+    - [ ] Chorus
 * __Other things__
     - [x] Standard MIDI file support
-    - [] Loop extension support
-    - [] Performace optimization
+    - [ ] Loop extension support
+    - [ ] Performace optimization
 
 
 
