@@ -1,6 +1,7 @@
 package meltysynth
 
 import (
+	"encoding/binary"
 	"errors"
 	"io"
 )
@@ -45,4 +46,26 @@ func readFixedLengthString(reader io.Reader, length int32) (string, error) {
 	}
 
 	return string(data[0:actualLength]), nil
+}
+
+func readIntVariableLength(reader io.Reader) (int32, error) {
+
+	acc := int32(0)
+	count := 0
+	for {
+		var value byte
+		err := binary.Read(reader, binary.LittleEndian, &value)
+		if err != nil {
+			return 0, err
+		}
+		acc = (acc << 7) | (int32(value) & 127)
+		if (value & 128) == 0 {
+			break
+		}
+		count++
+		if count == 4 {
+			return 0, errors.New("the length of the value must be equal to or less than 4")
+		}
+	}
+	return acc, nil
 }

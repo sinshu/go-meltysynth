@@ -23,3 +23,4 @@ go.work
 # Audio related files
 *.sf2
 *.pcm
+*.mid

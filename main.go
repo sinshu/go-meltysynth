@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/binary"
 	"fmt"
 	"os"
 
@@ -10,46 +9,60 @@ import (
 
 func main() {
 
-	srcFile, err := os.Open("timgm6mb.sf2")
+	srcFile, err := os.Open("PROGROCK.MID")
 	if err != nil {
-		panic("OMG1")
+		panic(err)
 	}
 
-	soundFont, err := meltysynth.NewSoundFont(srcFile)
+	mf, err := meltysynth.NewMidiFile(srcFile)
 	if err != nil {
-		panic("OMG2")
+		panic(err)
 	}
 
-	var sampleRate int32 = 44100
+	fmt.Println(mf)
 
-	settings := meltysynth.NewSynthesizerSettings(sampleRate)
+	/*
+		srcFile, err := os.Open("timgm6mb.sf2")
+		if err != nil {
+			panic("OMG1")
+		}
 
-	synthesizer, err := meltysynth.NewSynthesizer(soundFont, settings)
-	if err != nil {
-		panic("OMG3")
-	}
+		soundFont, err := meltysynth.NewSoundFont(srcFile)
+		if err != nil {
+			panic("OMG2")
+		}
 
-	synthesizer.NoteOn(0, 60, 100)
-	synthesizer.NoteOn(0, 64, 100)
-	synthesizer.NoteOn(0, 67, 100)
+		var sampleRate int32 = 44100
 
-	left := make([]float32, 3*sampleRate)
-	right := make([]float32, 3*sampleRate)
+		settings := meltysynth.NewSynthesizerSettings(sampleRate)
 
-	synthesizer.Render(left, right)
+		synthesizer, err := meltysynth.NewSynthesizer(soundFont, settings)
+		if err != nil {
+			panic("OMG3")
+		}
 
-	buf := make([]float32, 2*len(left))
-	for i := 0; i < len(left); i++ {
-		buf[2*i] = left[i]
-		buf[2*i+1] = right[i]
-	}
+		synthesizer.NoteOn(0, 60, 100)
+		synthesizer.NoteOn(0, 64, 100)
+		synthesizer.NoteOn(0, 67, 100)
 
-	dstFile, err := os.Create("out.pcm")
-	if err != nil {
-		panic("OMG4")
-	}
+		left := make([]float32, 3*sampleRate)
+		right := make([]float32, 3*sampleRate)
 
-	binary.Write(dstFile, binary.LittleEndian, buf)
+		synthesizer.Render(left, right)
 
-	fmt.Println("DONE!")
+		buf := make([]float32, 2*len(left))
+		for i := 0; i < len(left); i++ {
+			buf[2*i] = left[i]
+			buf[2*i+1] = right[i]
+		}
+
+		dstFile, err := os.Create("out.pcm")
+		if err != nil {
+			panic("OMG4")
+		}
+
+		binary.Write(dstFile, binary.LittleEndian, buf)
+
+		fmt.Println("DONE!")
+	*/
 }
