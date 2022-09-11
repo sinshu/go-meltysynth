@@ -10,7 +10,7 @@ type InstrumentRegion struct {
 	gs     [61]int16
 }
 
-func createInstrumentRegion(instrument *Instrument, global []generator, local []generator, samples []*SampleHeader) (*InstrumentRegion, error) {
+func createInstrumentRegion(instrument *Instrument, global *zone, local *zone, samples []*SampleHeader) (*InstrumentRegion, error) {
 
 	result := new(InstrumentRegion)
 
@@ -34,16 +34,12 @@ func createInstrumentRegion(instrument *Instrument, global []generator, local []
 	result.gs[gen_ScaleTuning] = 100
 	result.gs[gen_OverridingRootKey] = -1
 
-	if global != nil {
-		for i := 0; i < len(global); i++ {
-			result.setParameter(global[i])
-		}
+	for i := 0; i < len(global.generators); i++ {
+		result.setParameter(global.generators[i])
 	}
 
-	if local != nil {
-		for i := 0; i < len(local); i++ {
-			result.setParameter(local[i])
-		}
+	for i := 0; i < len(local.generators); i++ {
+		result.setParameter(local.generators[i])
 	}
 
 	id := result.gs[gen_SampleID]
@@ -57,31 +53,32 @@ func createInstrumentRegion(instrument *Instrument, global []generator, local []
 
 func createInstrumentRegions(instrument *Instrument, zones []*zone, samples []*SampleHeader) ([]*InstrumentRegion, error) {
 
-	var global *zone = nil
 	var err error
 
 	// Is the first one the global zone?
 	if len(zones[0].generators) == 0 || zones[0].generators[len(zones[0].generators)-1].generatorType != gen_SampleID {
-		// The first one is the global zone.
-		global = zones[0]
-	}
 
-	if global != nil {
+		// The first one is the global zone.
+		global := zones[0]
+
+		// The global zone is regarded as the base setting of subsequent zones.
 		count := len(zones) - 1
 		regions := make([]*InstrumentRegion, count)
 		for i := 0; i < count; i++ {
-			regions[i], err = createInstrumentRegion(instrument, global.generators, zones[i+1].generators, samples)
+			regions[i], err = createInstrumentRegion(instrument, global, zones[i+1], samples)
 			if err != nil {
 				return nil, err
 			}
 		}
 		return regions, nil
+
 	} else {
+
 		// No global zone.
 		count := len(zones)
 		regions := make([]*InstrumentRegion, count)
 		for i := 0; i < count; i++ {
-			regions[i], err = createInstrumentRegion(instrument, nil, zones[i].generators, samples)
+			regions[i], err = createInstrumentRegion(instrument, createEmptyZone(), zones[i], samples)
 			if err != nil {
 				return nil, err
 			}

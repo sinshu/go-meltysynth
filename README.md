@@ -12,6 +12,66 @@ https://www.youtube.com/watch?v=D1tagLPIlAc
 
 
 
+## Examples
+
+An example code to synthesize a simple chord:
+
+```go
+// Load the SoundFont.
+sf2, _ := os.Open("TimGM6mb.sf2")
+soundFont, _ := meltysynth.NewSoundFont(sf2)
+sf2.Close()
+
+// Create the synthesizer.
+settings := meltysynth.NewSynthesizerSettings(44100)
+synthesizer, _ := meltysynth.NewSynthesizer(soundFont, settings)
+
+// Play some notes (middle C, E, G).
+synthesizer.NoteOn(0, 60, 100)
+synthesizer.NoteOn(0, 64, 100)
+synthesizer.NoteOn(0, 67, 100)
+
+// The output buffer (3 seconds).
+length := 3 * settings.SampleRate
+left := make([]float32, length)
+right := make([]float32, length)
+
+// Render the waveform.
+synthesizer.Render(left, right)
+```
+
+Another example code to synthesize a MIDI file:
+
+```go
+// Load the SoundFont.
+sf2, _ := os.Open("TimGM6mb.sf2")
+soundFont, _ := meltysynth.NewSoundFont(sf2)
+sf2.Close()
+
+// Create the synthesizer.
+settings := meltysynth.NewSynthesizerSettings(44100)
+synthesizer, _ := meltysynth.NewSynthesizer(soundFont, settings)
+
+// Load the MIDI file.
+mid, _ := os.Open("C:\\Windows\\Media\\flourish.mid")
+midiFile, _ := meltysynth.NewMidiFile(mid)
+mid.Close()
+
+// Create the MIDI sequencer.
+sequencer := meltysynth.NewMidiFileSequencer(synthesizer)
+sequencer.Play(midiFile, true)
+// The output buffer.
+
+length := int(float64(settings.SampleRate) * float64(midiFile.GetLength()) / float64(time.Second))
+left := make([]float32, length)
+right := make([]float32, length)
+
+// Render the waveform.
+sequencer.Render(left, right)
+```
+
+
+
 ## Todo
 
 * __Wave synthesis__
@@ -38,7 +98,7 @@ https://www.youtube.com/watch?v=D1tagLPIlAc
 * __Other things__
     - [x] Standard MIDI file support
     - [ ] Loop extension support
-    - [ ] Performace optimization
+    - [x] Performace optimization
 
 
 

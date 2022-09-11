@@ -23,10 +23,8 @@ type message struct {
 }
 
 type MidiFile struct {
-	trackCount int32
-	resolution int32
-	messages   []message
-	times      []time.Duration
+	messages []message
+	times    []time.Duration
 }
 
 func newMessage(channel byte, command byte, data1 byte, data2 byte) message {

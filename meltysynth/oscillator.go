@@ -4,6 +4,15 @@ import (
 	"math"
 )
 
+// In this class, fixed-point numbers are used for speed-up.
+// A fixed-point number is expressed by Int64, whose lower 24 bits represent the fraction part,
+// and the rest represent the integer part.
+// For clarity, fixed-point number variables have a suffix "_fp".
+
+const fracBits int32 = 24
+const fracUnit int64 = 1 << fracBits
+const fpToSample float32 = float32(1) / float32(32768*fracUnit)
+
 type oscillator struct {
 	synthesizer      *Synthesizer
 	data             []int16
@@ -18,7 +27,7 @@ type oscillator struct {
 	pitchChangeScale float32
 	sampleRateRatio  float32
 	looping          bool
-	position         float64
+	position_fp      int64
 }
 
 func newOscillator(synthesizer *Synthesizer) *oscillator {
@@ -48,7 +57,7 @@ func (oscillator *oscillator) start(data []int16, loopMode int32, sampleRate int
 		oscillator.looping = true
 	}
 
-	oscillator.position = float64(start)
+	oscillator.position_fp = int64(start) << fracBits
 }
 
 func (oscillator *oscillator) release() {
@@ -67,20 +76,22 @@ func (oscillator *oscillator) process(block []float32, pitch float32) bool {
 
 func (oscillator *oscillator) fillBlock(block []float32, pitchRatio float64) bool {
 
+	pitchRatio_fp := int64(float64(fracUnit) * pitchRatio)
+
 	if oscillator.looping {
-		return oscillator.fillBlock_Continuous(block, pitchRatio)
+		return oscillator.fillBlock_Continuous(block, pitchRatio_fp)
 	} else {
-		return oscillator.fillBlock_NoLoop(block, pitchRatio)
+		return oscillator.fillBlock_NoLoop(block, pitchRatio_fp)
 	}
 }
 
-func (oscillator *oscillator) fillBlock_NoLoop(block []float32, pitchRatio float64) bool {
+func (oscillator *oscillator) fillBlock_NoLoop(block []float32, pitchRatio_fp int64) bool {
 
 	blockLength := len(block)
 
 	for t := 0; t < blockLength; t++ {
 
-		index := int32(oscillator.position)
+		index := int32(oscillator.position_fp >> fracBits)
 
 		if index >= oscillator.sampleEnd {
 			if t > 0 {
@@ -95,30 +106,31 @@ func (oscillator *oscillator) fillBlock_NoLoop(block []float32, pitchRatio float
 
 		x1 := oscillator.data[index]
 		x2 := oscillator.data[index+1]
-		a := float32(oscillator.position - float64(index))
-		block[t] = (float32(x1) + a*float32(x2-x1)) / 32768
+		a_fp := oscillator.position_fp & (fracUnit - 1)
+		block[t] = fpToSample * float32((int64(x1)<<fracBits)+a_fp*int64(x2-x1))
 
-		oscillator.position += pitchRatio
+		oscillator.position_fp += pitchRatio_fp
 	}
 
 	return true
 }
 
-func (oscillator *oscillator) fillBlock_Continuous(block []float32, pitchRatio float64) bool {
+func (oscillator *oscillator) fillBlock_Continuous(block []float32, pitchRatio_fp int64) bool {
 
 	blockLength := len(block)
 
-	endLoopPosition := float64(oscillator.endLoop)
+	endLoop_fp := int64(oscillator.endLoop) << fracBits
 
-	loopLength := oscillator.endLoop - oscillator.startLoop
+	loopLength := int32(oscillator.endLoop - oscillator.startLoop)
+	loopLength_fp := int64(loopLength) << fracBits
 
 	for t := 0; t < blockLength; t++ {
 
-		if oscillator.position >= endLoopPosition {
-			oscillator.position -= float64(loopLength)
+		if oscillator.position_fp >= endLoop_fp {
+			oscillator.position_fp -= loopLength_fp
 		}
 
-		index1 := int32(oscillator.position)
+		index1 := int32(oscillator.position_fp >> fracBits)
 		index2 := index1 + 1
 
 		if index2 >= oscillator.endLoop {
@@ -127,10 +139,10 @@ func (oscillator *oscillator) fillBlock_Continuous(block []float32, pitchRatio f
 
 		x1 := oscillator.data[index1]
 		x2 := oscillator.data[index2]
-		a := oscillator.position - float64(index1)
-		block[t] = float32((float64(x1) + a*float64(x2-x1)) / 32768)
+		a_fp := oscillator.position_fp & (fracUnit - 1)
+		block[t] = fpToSample * float32((int64(x1)<<fracBits)+a_fp*int64(x2-x1))
 
-		oscillator.position += pitchRatio
+		oscillator.position_fp += pitchRatio_fp
 	}
 
 	return true

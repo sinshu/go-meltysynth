@@ -10,23 +10,19 @@ type PresetRegion struct {
 	gs         [61]int16
 }
 
-func createPresetRegion(preset *Preset, global []generator, local []generator, instruments []*Instrument) (*PresetRegion, error) {
+func createPresetRegion(preset *Preset, global *zone, local *zone, instruments []*Instrument) (*PresetRegion, error) {
 
 	result := new(PresetRegion)
 
 	result.gs[gen_KeyRange] = 0x7F00
 	result.gs[gen_VelocityRange] = 0x7F00
 
-	if global != nil {
-		for i := 0; i < len(global); i++ {
-			result.setParameter(global[i])
-		}
+	for i := 0; i < len(global.generators); i++ {
+		result.setParameter(global.generators[i])
 	}
 
-	if local != nil {
-		for i := 0; i < len(local); i++ {
-			result.setParameter(local[i])
-		}
+	for i := 0; i < len(local.generators); i++ {
+		result.setParameter(local.generators[i])
 	}
 
 	id := result.gs[gen_Instrument]
@@ -45,26 +41,28 @@ func createPresetRegions(preset *Preset, zones []*zone, instruments []*Instrumen
 
 	// Is the first one the global zone?
 	if len(zones[0].generators) == 0 || zones[0].generators[len(zones[0].generators)-1].generatorType != gen_Instrument {
+
 		// The first one is the global zone.
 		global = zones[0]
-	}
 
-	if global != nil {
+		// The global zone is regarded as the base setting of subsequent zones.
 		count := len(zones) - 1
 		regions := make([]*PresetRegion, count)
 		for i := 0; i < count; i++ {
-			regions[i], err = createPresetRegion(preset, global.generators, zones[i+1].generators, instruments)
+			regions[i], err = createPresetRegion(preset, global, zones[i+1], instruments)
 			if err != nil {
 				return nil, err
 			}
 		}
 		return regions, nil
+
 	} else {
+
 		// No global zone.
 		count := len(zones)
 		regions := make([]*PresetRegion, count)
 		for i := 0; i < count; i++ {
-			regions[i], err = createPresetRegion(preset, nil, zones[i].generators, instruments)
+			regions[i], err = createPresetRegion(preset, createEmptyZone(), zones[i], instruments)
 			if err != nil {
 				return nil, err
 			}
