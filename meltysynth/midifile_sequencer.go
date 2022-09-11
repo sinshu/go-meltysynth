@@ -13,11 +13,13 @@ type MidiFileSequencer struct {
 	currentTime time.Duration
 	msgIndex    int32
 	loopIndex   int32
+	speed       float64
 }
 
 func NewMidiFileSequencer(synthesizer *Synthesizer) *MidiFileSequencer {
 	result := new(MidiFileSequencer)
 	result.synthesizer = synthesizer
+	result.speed = 1
 	return result
 }
 
@@ -50,7 +52,7 @@ func (sequencer *MidiFileSequencer) Render(left []float32, right []float32) {
 		if sequencer.blockWrote == sequencer.synthesizer.BlockSize {
 			sequencer.processEvents()
 			sequencer.blockWrote = 0
-			sequencer.currentTime += time.Duration(float64(time.Second) * float64(sequencer.synthesizer.BlockSize) / float64(sequencer.synthesizer.SampleRate))
+			sequencer.currentTime += time.Duration(sequencer.speed * float64(time.Second) * float64(sequencer.synthesizer.BlockSize) / float64(sequencer.synthesizer.SampleRate))
 		}
 
 		srcRem := sequencer.synthesizer.BlockSize - sequencer.blockWrote
@@ -89,4 +91,8 @@ func (sequencer *MidiFileSequencer) processEvents() {
 		sequencer.msgIndex = 0
 		sequencer.synthesizer.NoteOffAll(false)
 	}
+}
+
+func (sequencer *MidiFileSequencer) SetSpeed(speed float64) {
+	sequencer.speed = speed
 }
