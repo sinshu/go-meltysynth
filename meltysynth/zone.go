@@ -34,3 +34,10 @@ func createZones(infos []*zoneInfo, generators []generator) ([]*zone, error) {
 
 	return zones, nil
 }
+
+func createEmptyZone() *zone {
+
+	result := new(zone)
+	result.generators = make([]generator, 0)
+	return result
+}
