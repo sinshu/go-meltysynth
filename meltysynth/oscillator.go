@@ -104,10 +104,10 @@ func (oscillator *oscillator) fillBlock_NoLoop(block []float32, pitchRatio_fp in
 			}
 		}
 
-		x1 := oscillator.data[index]
-		x2 := oscillator.data[index+1]
+		x1 := int64(oscillator.data[index])
+		x2 := int64(oscillator.data[index+1])
 		a_fp := oscillator.position_fp & (fracUnit - 1)
-		block[t] = fpToSample * float32((int64(x1)<<fracBits)+a_fp*int64(x2-x1))
+		block[t] = fpToSample * float32((x1<<fracBits)+a_fp*(x2-x1))
 
 		oscillator.position_fp += pitchRatio_fp
 	}
@@ -137,10 +137,10 @@ func (oscillator *oscillator) fillBlock_Continuous(block []float32, pitchRatio_f
 			index2 -= loopLength
 		}
 
-		x1 := oscillator.data[index1]
-		x2 := oscillator.data[index2]
+		x1 := int64(oscillator.data[index1])
+		x2 := int64(oscillator.data[index2])
 		a_fp := oscillator.position_fp & (fracUnit - 1)
-		block[t] = fpToSample * float32((int64(x1)<<fracBits)+a_fp*int64(x2-x1))
+		block[t] = fpToSample * float32((x1<<fracBits)+a_fp*(x2-x1))
 
 		oscillator.position_fp += pitchRatio_fp
 	}
