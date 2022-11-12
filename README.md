@@ -60,8 +60,8 @@ mid.Close()
 // Create the MIDI sequencer.
 sequencer := meltysynth.NewMidiFileSequencer(synthesizer)
 sequencer.Play(midiFile, true)
-// The output buffer.
 
+// The output buffer.
 length := int(float64(settings.SampleRate) * float64(midiFile.GetLength()) / float64(time.Second))
 left := make([]float32, length)
 right := make([]float32, length)
