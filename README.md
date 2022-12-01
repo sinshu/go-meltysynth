@@ -4,6 +4,14 @@ Go-MeltySynth is a SoundFont synthesizer written in Go, ported from [MeltySynth 
 
 
 
+## Features
+
+* Suitable for both real-time and offline synthesis.
+* Support for standard MIDI files with additional functionalities like dynamic tempo change.
+* No dependencies other than .NET Standard 2.1.
+
+
+
 ## Demo
 
 https://www.youtube.com/watch?v=D1tagLPIlAc
