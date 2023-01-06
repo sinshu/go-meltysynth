@@ -12,12 +12,12 @@ type soundFontParameters struct {
 	instruments   []*Instrument
 }
 
-func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
+func newSoundFontParameters(r io.Reader) (*soundFontParameters, error) {
 
 	var err error
 
 	var chunkId string
-	chunkId, err = readFourCC(reader)
+	chunkId, err = readFourCC(r)
 	if err != nil {
 		return nil, err
 	}
@@ -27,13 +27,13 @@ func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
 
 	var pos int32 = 0
 	var end int32
-	err = binary.Read(reader, binary.LittleEndian, &end)
+	err = binary.Read(r, binary.LittleEndian, &end)
 	if err != nil {
 		return nil, err
 	}
 
 	var listType string
-	listType, err = readFourCC(reader)
+	listType, err = readFourCC(r)
 	if err != nil {
 		return nil, err
 	}
@@ -53,14 +53,14 @@ func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
 	for pos < end {
 
 		var id string
-		id, err = readFourCC(reader)
+		id, err = readFourCC(r)
 		if err != nil {
 			return nil, err
 		}
 		pos += 4
 
 		var size int32
-		err = binary.Read(reader, binary.LittleEndian, &size)
+		err = binary.Read(r, binary.LittleEndian, &size)
 		if err != nil {
 			return nil, err
 		}
@@ -69,23 +69,23 @@ func newSoundFontParameters(reader io.Reader) (*soundFontParameters, error) {
 		switch id {
 
 		case "phdr":
-			presetInfos, err = readPresetsFromChunk(reader, size)
+			presetInfos, err = readPresetsFromChunk(r, size)
 		case "pbag":
-			presetBag, err = readZonesFromChunk(reader, size)
+			presetBag, err = readZonesFromChunk(r, size)
 		case "pmod":
-			err = discardModulatorData(reader, size)
+			err = discardModulatorData(r, size)
 		case "pgen":
-			presetGenerators, err = readGeneratorsFromChunk(reader, size)
+			presetGenerators, err = readGeneratorsFromChunk(r, size)
 		case "inst":
-			instrumentInfos, err = readInstrumentsFromChunk(reader, size)
+			instrumentInfos, err = readInstrumentsFromChunk(r, size)
 		case "ibag":
-			instrumentBag, err = readZonesFromChunk(reader, size)
+			instrumentBag, err = readZonesFromChunk(r, size)
 		case "imod":
-			err = discardModulatorData(reader, size)
+			err = discardModulatorData(r, size)
 		case "igen":
-			instrumentGenerators, err = readGeneratorsFromChunk(reader, size)
+			instrumentGenerators, err = readGeneratorsFromChunk(r, size)
 		case "shdr":
-			sampleHeaders, err = readSampleHeadersFromChunk(reader, size)
+			sampleHeaders, err = readSampleHeadersFromChunk(r, size)
 		default:
 			return nil, errors.New("the info list contains an unknown id '" + id + "'")
 		}

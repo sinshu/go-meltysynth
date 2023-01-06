@@ -10,19 +10,19 @@ type SoundFontVersion struct {
 	Minor int16
 }
 
-func newSoundFontVersion(reader io.Reader) (SoundFontVersion, error) {
+func newSoundFontVersion(r io.Reader) (SoundFontVersion, error) {
 
 	var result SoundFontVersion
 	var err error
 
 	var major int16
-	err = binary.Read(reader, binary.LittleEndian, &major)
+	err = binary.Read(r, binary.LittleEndian, &major)
 	if err != nil {
 		return result, err
 	}
 
 	var minor int16
-	err = binary.Read(reader, binary.LittleEndian, &minor)
+	err = binary.Read(r, binary.LittleEndian, &minor)
 	if err != nil {
 		return result, err
 	}

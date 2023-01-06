@@ -19,7 +19,7 @@ type SampleHeader struct {
 	SampleType      uint16
 }
 
-func readSampleHeadersFromChunk(reader io.Reader, size int32) ([]*SampleHeader, error) {
+func readSampleHeadersFromChunk(r io.Reader, size int32) ([]*SampleHeader, error) {
 
 	var n int
 	var err error
@@ -36,69 +36,69 @@ func readSampleHeadersFromChunk(reader io.Reader, size int32) ([]*SampleHeader, 
 
 		header := new(SampleHeader)
 
-		header.Name, err = readFixedLengthString(reader, 20)
+		header.Name, err = readFixedLengthString(r, 20)
 		if err != nil {
 			return nil, err
 		}
 
 		var start int32
-		err = binary.Read(reader, binary.LittleEndian, &start)
+		err = binary.Read(r, binary.LittleEndian, &start)
 		if err != nil {
 			return nil, err
 		}
 		header.Start = start
 
 		var end int32
-		err = binary.Read(reader, binary.LittleEndian, &end)
+		err = binary.Read(r, binary.LittleEndian, &end)
 		if err != nil {
 			return nil, err
 		}
 		header.End = end
 
 		var startLoop int32
-		err = binary.Read(reader, binary.LittleEndian, &startLoop)
+		err = binary.Read(r, binary.LittleEndian, &startLoop)
 		if err != nil {
 			return nil, err
 		}
 		header.StartLoop = startLoop
 
 		var endLoop int32
-		err = binary.Read(reader, binary.LittleEndian, &endLoop)
+		err = binary.Read(r, binary.LittleEndian, &endLoop)
 		if err != nil {
 			return nil, err
 		}
 		header.EndLoop = endLoop
 
 		var sampleRate int32
-		err = binary.Read(reader, binary.LittleEndian, &sampleRate)
+		err = binary.Read(r, binary.LittleEndian, &sampleRate)
 		if err != nil {
 			return nil, err
 		}
 		header.SampleRate = sampleRate
 
 		var originalPitch uint8
-		err = binary.Read(reader, binary.LittleEndian, &originalPitch)
+		err = binary.Read(r, binary.LittleEndian, &originalPitch)
 		if err != nil {
 			return nil, err
 		}
 		header.OriginalPitch = originalPitch
 
 		var pitchCorrection int8
-		err = binary.Read(reader, binary.LittleEndian, &pitchCorrection)
+		err = binary.Read(r, binary.LittleEndian, &pitchCorrection)
 		if err != nil {
 			return nil, err
 		}
 		header.PitchCorrection = pitchCorrection
 
 		var link uint16
-		err = binary.Read(reader, binary.LittleEndian, &link)
+		err = binary.Read(r, binary.LittleEndian, &link)
 		if err != nil {
 			return nil, err
 		}
 		header.Link = link
 
 		var sampleType uint16
-		err = binary.Read(reader, binary.LittleEndian, &sampleType)
+		err = binary.Read(r, binary.LittleEndian, &sampleType)
 		if err != nil {
 			return nil, err
 		}
@@ -108,7 +108,7 @@ func readSampleHeadersFromChunk(reader io.Reader, size int32) ([]*SampleHeader, 
 	}
 
 	// The last one is the terminator.
-	n, err = reader.Read(make([]byte, 46))
+	n, err = r.Read(make([]byte, 46))
 	if err != nil {
 		return nil, err
 	}

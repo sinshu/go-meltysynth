@@ -77,11 +77,11 @@ func (message message) getTempo() float64 {
 	return 60000000.0 / float64((int32(message.command)<<16)|(int32(message.data1)<<8)|int32(message.data2))
 }
 
-func NewMidiFile(reader io.Reader) (*MidiFile, error) {
+func NewMidiFile(r io.Reader) (*MidiFile, error) {
 
 	var err error
 
-	chunkType, err := readFourCC(reader)
+	chunkType, err := readFourCC(r)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func NewMidiFile(reader io.Reader) (*MidiFile, error) {
 	}
 
 	var size int32
-	err = binary.Read(reader, binary.BigEndian, &size)
+	err = binary.Read(r, binary.BigEndian, &size)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func NewMidiFile(reader io.Reader) (*MidiFile, error) {
 	}
 
 	var format int16
-	err = binary.Read(reader, binary.BigEndian, &format)
+	err = binary.Read(r, binary.BigEndian, &format)
 	if err != nil {
 		return nil, err
 	}
@@ -108,13 +108,13 @@ func NewMidiFile(reader io.Reader) (*MidiFile, error) {
 	}
 
 	var trackCount int16
-	err = binary.Read(reader, binary.BigEndian, &trackCount)
+	err = binary.Read(r, binary.BigEndian, &trackCount)
 	if err != nil {
 		return nil, err
 	}
 
 	var resolution int16
-	err = binary.Read(reader, binary.BigEndian, &resolution)
+	err = binary.Read(r, binary.BigEndian, &resolution)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func NewMidiFile(reader io.Reader) (*MidiFile, error) {
 	messageLists := make([][]message, trackCount)
 	tickLists := make([][]int32, trackCount)
 	for i := int16(0); i < trackCount; i++ {
-		messageList, tickList, err := readTrack(reader)
+		messageList, tickList, err := readTrack(r)
 		if err != nil {
 			return nil, err
 		}
@@ -139,12 +139,12 @@ func NewMidiFile(reader io.Reader) (*MidiFile, error) {
 	return result, nil
 }
 
-func readTrack(reader io.Reader) ([]message, []int32, error) {
+func readTrack(r io.Reader) ([]message, []int32, error) {
 
 	var n int
 	var err error
 
-	chunkType, err := readFourCC(reader)
+	chunkType, err := readFourCC(r)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -152,7 +152,7 @@ func readTrack(reader io.Reader) ([]message, []int32, error) {
 		return nil, nil, errors.New("the chunk type must be 'MTrk', but was '" + chunkType + "'")
 	}
 
-	reader.Read(make([]byte, 4))
+	r.Read(make([]byte, 4))
 
 	messages := make([]message, 0, 300)
 	ticks := make([]int32, 0, 300)
@@ -161,13 +161,13 @@ func readTrack(reader io.Reader) ([]message, []int32, error) {
 	var lastStatus byte = 0
 
 	for {
-		delta, err := readIntVariableLength(reader)
+		delta, err := readIntVariableLength(r)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		var first byte
-		err = binary.Read(reader, binary.LittleEndian, &first)
+		err = binary.Read(r, binary.LittleEndian, &first)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -181,7 +181,7 @@ func readTrack(reader io.Reader) ([]message, []int32, error) {
 				ticks = append(ticks, tick)
 			} else {
 				var data2 byte
-				err = binary.Read(reader, binary.LittleEndian, &data2)
+				err = binary.Read(r, binary.LittleEndian, &data2)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -194,26 +194,26 @@ func readTrack(reader io.Reader) ([]message, []int32, error) {
 
 		switch first {
 		case 0xF0: // System Exclusive
-			err = discardData(reader)
+			err = discardData(r)
 			if err != nil {
 				return nil, nil, err
 			}
 
 		case 0xF7: // System Exclusive
-			err = discardData(reader)
+			err = discardData(r)
 			if err != nil {
 				return nil, nil, err
 			}
 
 		case 0xFF: // Meta Event
 			var metaEvent byte
-			err = binary.Read(reader, binary.LittleEndian, &metaEvent)
+			err = binary.Read(r, binary.LittleEndian, &metaEvent)
 			if err != nil {
 				return nil, nil, err
 			}
 			switch metaEvent {
 			case 0x2F: // End of Track
-				n, err = reader.Read(make([]byte, 1))
+				n, err = r.Read(make([]byte, 1))
 				if err != nil {
 					return nil, nil, err
 				}
@@ -226,7 +226,7 @@ func readTrack(reader io.Reader) ([]message, []int32, error) {
 
 			case 0x51: // Tempo
 				var tempo int32
-				tempo, err = readTempo(reader)
+				tempo, err = readTempo(r)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -234,7 +234,7 @@ func readTrack(reader io.Reader) ([]message, []int32, error) {
 				ticks = append(ticks, tick)
 
 			default:
-				err = discardData(reader)
+				err = discardData(r)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -244,7 +244,7 @@ func readTrack(reader io.Reader) ([]message, []int32, error) {
 			command := first & 0xF0
 			if command == 0xC0 || command == 0xD0 {
 				var data1 byte
-				err = binary.Read(reader, binary.LittleEndian, &data1)
+				err = binary.Read(r, binary.LittleEndian, &data1)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -252,12 +252,12 @@ func readTrack(reader io.Reader) ([]message, []int32, error) {
 				ticks = append(ticks, tick)
 			} else {
 				var data1 byte
-				err = binary.Read(reader, binary.LittleEndian, &data1)
+				err = binary.Read(r, binary.LittleEndian, &data1)
 				if err != nil {
 					return nil, nil, err
 				}
 				var data2 byte
-				err = binary.Read(reader, binary.LittleEndian, &data2)
+				err = binary.Read(r, binary.LittleEndian, &data2)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -321,9 +321,9 @@ func mergeTracks(messageLists [][]message, tickLists [][]int32, resolution int16
 	return mergedMessages, mergedTimes
 }
 
-func readTempo(reader io.Reader) (int32, error) {
+func readTempo(r io.Reader) (int32, error) {
 
-	size, err := readIntVariableLength(reader)
+	size, err := readIntVariableLength(r)
 	if err != nil {
 		return 0, err
 	}
@@ -332,7 +332,7 @@ func readTempo(reader io.Reader) (int32, error) {
 	}
 
 	var bs [3]byte
-	n, err := reader.Read(bs[:])
+	n, err := r.Read(bs[:])
 	if err != nil {
 		return 0, err
 	}
@@ -346,14 +346,14 @@ func readTempo(reader io.Reader) (int32, error) {
 	return (int32(b1) << 16) | (int32(b2) << 8) | int32(b3), nil
 }
 
-func discardData(reader io.Reader) error {
+func discardData(r io.Reader) error {
 
-	size, err := readIntVariableLength(reader)
+	size, err := readIntVariableLength(r)
 	if err != nil {
 		return err
 	}
 
-	n, err := reader.Read(make([]byte, size))
+	n, err := r.Read(make([]byte, size))
 	if err != nil {
 		return err
 	}
@@ -364,6 +364,6 @@ func discardData(reader io.Reader) error {
 	return nil
 }
 
-func (midiFile *MidiFile) GetLength() time.Duration {
-	return midiFile.times[len(midiFile.times)-1]
+func (mf *MidiFile) GetLength() time.Duration {
+	return mf.times[len(mf.times)-1]
 }

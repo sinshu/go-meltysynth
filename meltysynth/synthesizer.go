@@ -35,7 +35,7 @@ type Synthesizer struct {
 	MasterVolume float32
 }
 
-func NewSynthesizer(soundFont *SoundFont, settings *SynthesizerSettings) (*Synthesizer, error) {
+func NewSynthesizer(sf *SoundFont, settings *SynthesizerSettings) (*Synthesizer, error) {
 
 	err := settings.validate()
 	if err != nil {
@@ -44,7 +44,7 @@ func NewSynthesizer(soundFont *SoundFont, settings *SynthesizerSettings) (*Synth
 
 	result := new(Synthesizer)
 
-	result.SoundFont = soundFont
+	result.SoundFont = sf
 	result.SampleRate = settings.SampleRate
 	result.BlockSize = settings.BlockSize
 	result.MaximumPolyphony = settings.MaximumPolyphony
@@ -55,8 +55,8 @@ func NewSynthesizer(soundFont *SoundFont, settings *SynthesizerSettings) (*Synth
 	result.presetLookup = make(map[int32]*Preset)
 
 	minPresetId := int32(math.MaxInt32)
-	for i := 0; i < len(soundFont.Presets); i++ {
-		preset := soundFont.Presets[i]
+	for i := 0; i < len(sf.Presets); i++ {
+		preset := sf.Presets[i]
 		// The preset ID is Int32, where the upper 16 bits represent the bank number
 		// and the lower 16 bits represent the patch number.
 		// This ID is used to search for presets by the combination of bank number
@@ -91,20 +91,20 @@ func NewSynthesizer(soundFont *SoundFont, settings *SynthesizerSettings) (*Synth
 	return result, nil
 }
 
-func (synthesizer *Synthesizer) ProcessMidiMessage(channel int32, command int32, data1 int32, data2 int32) {
+func (s *Synthesizer) ProcessMidiMessage(channel int32, command int32, data1 int32, data2 int32) {
 
-	if !(0 <= channel && int(channel) < len(synthesizer.channels)) {
+	if !(0 <= channel && int(channel) < len(s.channels)) {
 		return
 	}
 
-	channelInfo := synthesizer.channels[channel]
+	channelInfo := s.channels[channel]
 
 	switch command {
 	case 0x80: // Note Off
-		synthesizer.NoteOff(channel, data1)
+		s.NoteOff(channel, data1)
 
 	case 0x90: // Note On
-		synthesizer.NoteOn(channel, data1, data2)
+		s.NoteOn(channel, data1, data2)
 
 	case 0xB0: // Controller
 		switch data1 {
@@ -157,13 +157,13 @@ func (synthesizer *Synthesizer) ProcessMidiMessage(channel int32, command int32,
 			channelInfo.setRpnFine(data2)
 
 		case 0x78: // All Sound Off
-			synthesizer.NoteOffAllChannel(channel, true)
+			s.NoteOffAllChannel(channel, true)
 
 		case 0x79: // Reset All Controllers
-			synthesizer.ResetAllControllersChannel(channel)
+			s.ResetAllControllersChannel(channel)
 
 		case 0x7B: // All Note Off
-			synthesizer.NoteOffAllChannel(channel, false)
+			s.NoteOffAllChannel(channel, false)
 		}
 
 	case 0xC0: // Program Change
@@ -174,36 +174,36 @@ func (synthesizer *Synthesizer) ProcessMidiMessage(channel int32, command int32,
 	}
 }
 
-func (synthesizer *Synthesizer) NoteOff(channel int32, key int32) {
+func (s *Synthesizer) NoteOff(channel int32, key int32) {
 
-	if !(0 <= channel && int(channel) < len(synthesizer.channels)) {
+	if !(0 <= channel && int(channel) < len(s.channels)) {
 		return
 	}
 
-	for i := int32(0); i < synthesizer.voices.activeVoiceCount; i++ {
-		voice := synthesizer.voices.voices[i]
+	for i := int32(0); i < s.voices.activeVoiceCount; i++ {
+		voice := s.voices.voices[i]
 		if voice.channel == channel && voice.key == key {
 			voice.end()
 		}
 	}
 }
 
-func (synthesizer *Synthesizer) NoteOn(channel int32, key int32, velocity int32) {
+func (s *Synthesizer) NoteOn(channel int32, key int32, velocity int32) {
 
 	if velocity == 0 {
-		synthesizer.NoteOff(channel, key)
+		s.NoteOff(channel, key)
 		return
 	}
 
-	if !(0 <= channel && int(channel) < len(synthesizer.channels)) {
+	if !(0 <= channel && int(channel) < len(s.channels)) {
 		return
 	}
 
-	channelInfo := synthesizer.channels[channel]
+	channelInfo := s.channels[channel]
 
 	presetId := (channelInfo.bankNumber << 16) | channelInfo.patchNumber
 
-	preset, found := synthesizer.presetLookup[presetId]
+	preset, found := s.presetLookup[presetId]
 	if !found {
 		// Try fallback to the GM sound set.
 		// Normally, the given patch number + the bank number 0 will work.
@@ -215,10 +215,10 @@ func (synthesizer *Synthesizer) NoteOn(channel int32, key int32, velocity int32)
 			gmPresetId = 128 << 16
 		}
 
-		preset, found = synthesizer.presetLookup[gmPresetId]
+		preset, found = s.presetLookup[gmPresetId]
 		if !found {
 			// No corresponding preset was found. Use the default one...
-			preset = synthesizer.defaultPreset
+			preset = s.defaultPreset
 		}
 	}
 
@@ -232,7 +232,7 @@ func (synthesizer *Synthesizer) NoteOn(channel int32, key int32, velocity int32)
 				if instrumentRegion.contains(key, velocity) {
 					regionPair := newRegionPair(presetRegion, instrumentRegion)
 
-					voice := synthesizer.voices.requestNew(instrumentRegion, channel)
+					voice := s.voices.requestNew(instrumentRegion, channel)
 					if voice != nil {
 						voice.start(regionPair, channel, key, velocity)
 					}
@@ -242,108 +242,108 @@ func (synthesizer *Synthesizer) NoteOn(channel int32, key int32, velocity int32)
 	}
 }
 
-func (synthesizer *Synthesizer) NoteOffAll(immediate bool) {
+func (s *Synthesizer) NoteOffAll(immediate bool) {
 
 	if immediate {
-		synthesizer.voices.clear()
+		s.voices.clear()
 	} else {
-		for i := 0; i < int(synthesizer.voices.activeVoiceCount); i++ {
-			synthesizer.voices.voices[i].end()
+		for i := 0; i < int(s.voices.activeVoiceCount); i++ {
+			s.voices.voices[i].end()
 		}
 	}
 }
 
-func (synthesizer *Synthesizer) NoteOffAllChannel(channel int32, immediate bool) {
+func (s *Synthesizer) NoteOffAllChannel(channel int32, immediate bool) {
 
 	if immediate {
-		for i := 0; i < int(synthesizer.voices.activeVoiceCount); i++ {
-			if synthesizer.voices.voices[i].channel == channel {
-				synthesizer.voices.voices[i].kill()
+		for i := 0; i < int(s.voices.activeVoiceCount); i++ {
+			if s.voices.voices[i].channel == channel {
+				s.voices.voices[i].kill()
 			}
 		}
 	} else {
-		for i := 0; i < int(synthesizer.voices.activeVoiceCount); i++ {
-			if synthesizer.voices.voices[i].channel == channel {
-				synthesizer.voices.voices[i].end()
+		for i := 0; i < int(s.voices.activeVoiceCount); i++ {
+			if s.voices.voices[i].channel == channel {
+				s.voices.voices[i].end()
 			}
 		}
 	}
 }
 
-func (synthesizer *Synthesizer) ResetAllControllers() {
+func (s *Synthesizer) ResetAllControllers() {
 
-	channelCount := len(synthesizer.channels)
+	channelCount := len(s.channels)
 	for i := 0; i < channelCount; i++ {
-		synthesizer.channels[i].resetAllControllers()
+		s.channels[i].resetAllControllers()
 	}
 }
 
-func (synthesizer *Synthesizer) ResetAllControllersChannel(channel int32) {
+func (s *Synthesizer) ResetAllControllersChannel(channel int32) {
 
-	if !(0 <= channel && int(channel) < len(synthesizer.channels)) {
+	if !(0 <= channel && int(channel) < len(s.channels)) {
 		return
 	}
 
-	synthesizer.channels[channel].resetAllControllers()
+	s.channels[channel].resetAllControllers()
 }
 
-func (synthesizer *Synthesizer) Reset() {
+func (s *Synthesizer) Reset() {
 
-	synthesizer.voices.clear()
+	s.voices.clear()
 
-	channelCount := len(synthesizer.channels)
+	channelCount := len(s.channels)
 	for i := 0; i < channelCount; i++ {
-		synthesizer.channels[i].reset()
+		s.channels[i].reset()
 	}
 
-	synthesizer.blockRead = synthesizer.BlockSize
+	s.blockRead = s.BlockSize
 }
 
-func (synthesizer *Synthesizer) Render(left []float32, right []float32) {
+func (s *Synthesizer) Render(left []float32, right []float32) {
 
 	wrote := int32(0)
 	length := int32(len(left))
 	for wrote < length {
-		if synthesizer.blockRead == synthesizer.BlockSize {
-			synthesizer.renderBlock()
-			synthesizer.blockRead = 0
+		if s.blockRead == s.BlockSize {
+			s.renderBlock()
+			s.blockRead = 0
 		}
 
-		srcRem := synthesizer.BlockSize - synthesizer.blockRead
+		srcRem := s.BlockSize - s.blockRead
 		dstRem := int32(length - wrote)
 		rem := int32(math.Min(float64(srcRem), float64(dstRem)))
 
 		for i := int32(0); i < rem; i++ {
-			left[wrote+i] = synthesizer.blockLeft[synthesizer.blockRead+i]
-			right[wrote+i] = synthesizer.blockRight[synthesizer.blockRead+i]
+			left[wrote+i] = s.blockLeft[s.blockRead+i]
+			right[wrote+i] = s.blockRight[s.blockRead+i]
 		}
 
-		synthesizer.blockRead += rem
+		s.blockRead += rem
 		wrote += rem
 	}
 }
 
-func (synthesizer *Synthesizer) renderBlock() {
+func (s *Synthesizer) renderBlock() {
 
-	synthesizer.voices.process()
+	s.voices.process()
 
-	for i := 0; i < int(synthesizer.BlockSize); i++ {
-		synthesizer.blockLeft[i] = 0
-		synthesizer.blockRight[i] = 0
+	for i := 0; i < int(s.BlockSize); i++ {
+		s.blockLeft[i] = 0
+		s.blockRight[i] = 0
 	}
 
-	for i := 0; i < int(synthesizer.voices.activeVoiceCount); i++ {
-		voice := synthesizer.voices.voices[i]
-		previousGainLeft := synthesizer.MasterVolume * voice.previousMixGainLeft
-		currentGainLeft := synthesizer.MasterVolume * voice.currentMixGainLeft
-		synthesizer.writeBlock(previousGainLeft, currentGainLeft, voice.block, synthesizer.blockLeft)
-		var previousGainRight = synthesizer.MasterVolume * voice.previousMixGainRight
-		var currentGainRight = synthesizer.MasterVolume * voice.currentMixGainRight
-		synthesizer.writeBlock(previousGainRight, currentGainRight, voice.block, synthesizer.blockRight)
+	for i := 0; i < int(s.voices.activeVoiceCount); i++ {
+		voice := s.voices.voices[i]
+		previousGainLeft := s.MasterVolume * voice.previousMixGainLeft
+		currentGainLeft := s.MasterVolume * voice.currentMixGainLeft
+		s.writeBlock(previousGainLeft, currentGainLeft, voice.block, s.blockLeft)
+		var previousGainRight = s.MasterVolume * voice.previousMixGainRight
+		var currentGainRight = s.MasterVolume * voice.currentMixGainRight
+		s.writeBlock(previousGainRight, currentGainRight, voice.block, s.blockRight)
 	}
 }
 
-func (synthesizer *Synthesizer) writeBlock(previousGain float32, currentGain float32, source []float32, destination []float32) {
+func (s *Synthesizer) writeBlock(previousGain float32, currentGain float32, source []float32, destination []float32) {
 
 	if math.Max(float64(previousGain), float64(currentGain)) < float64(nonAudible) {
 		return
@@ -352,7 +352,7 @@ func (synthesizer *Synthesizer) writeBlock(previousGain float32, currentGain flo
 	if math.Abs(float64(currentGain-previousGain)) < 1.0e-3 {
 		arrayMultiplyAdd(currentGain, source, destination)
 	} else {
-		step := synthesizer.inverseBlockSize * (currentGain - previousGain)
+		step := s.inverseBlockSize * (currentGain - previousGain)
 		arrayMultiplyAddSlope(previousGain, step, source, destination)
 	}
 }

@@ -11,13 +11,13 @@ type soundFontSampleData struct {
 	samples       []int16
 }
 
-func newSoundFontSampleData(reader io.Reader) (*soundFontSampleData, error) {
+func newSoundFontSampleData(r io.Reader) (*soundFontSampleData, error) {
 
 	var n int
 	var err error
 
 	var chunkId string
-	chunkId, err = readFourCC(reader)
+	chunkId, err = readFourCC(r)
 	if err != nil {
 		return nil, err
 	}
@@ -27,13 +27,13 @@ func newSoundFontSampleData(reader io.Reader) (*soundFontSampleData, error) {
 
 	var pos int32 = 0
 	var end int32
-	err = binary.Read(reader, binary.LittleEndian, &end)
+	err = binary.Read(r, binary.LittleEndian, &end)
 	if err != nil {
 		return nil, err
 	}
 
 	var listType string
-	listType, err = readFourCC(reader)
+	listType, err = readFourCC(r)
 	if err != nil {
 		return nil, err
 	}
@@ -47,14 +47,14 @@ func newSoundFontSampleData(reader io.Reader) (*soundFontSampleData, error) {
 	for pos < end {
 
 		var id string
-		id, err = readFourCC(reader)
+		id, err = readFourCC(r)
 		if err != nil {
 			return nil, err
 		}
 		pos += 4
 
 		var size int32
-		err = binary.Read(reader, binary.LittleEndian, &size)
+		err = binary.Read(r, binary.LittleEndian, &size)
 		if err != nil {
 			return nil, err
 		}
@@ -65,11 +65,11 @@ func newSoundFontSampleData(reader io.Reader) (*soundFontSampleData, error) {
 		case "smpl":
 			result.bitsPerSample = 16
 			result.samples = make([]int16, size/2)
-			err = binary.Read(reader, binary.LittleEndian, result.samples)
+			err = binary.Read(r, binary.LittleEndian, result.samples)
 
 		case "sm24":
 			// 24 bit audio is not supported.
-			n, err = reader.Read(make([]byte, size))
+			n, err = r.Read(make([]byte, size))
 			if n != int(size) {
 				return nil, errors.New("failed to read the 24 bit audio data")
 			}

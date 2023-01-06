@@ -70,32 +70,32 @@ type voice struct {
 	voiceLength int32
 }
 
-func newVoice(synthesizer *Synthesizer) *voice {
+func newVoice(s *Synthesizer) *voice {
 
 	result := new(voice)
 
-	result.synthesizer = synthesizer
+	result.synthesizer = s
 
-	result.volEnv = newVolumeEnvelope(synthesizer)
-	result.modEnv = newModulationEnvelope(synthesizer)
+	result.volEnv = newVolumeEnvelope(s)
+	result.modEnv = newModulationEnvelope(s)
 
-	result.vibLfo = newLfo(synthesizer)
-	result.modLfo = newLfo(synthesizer)
+	result.vibLfo = newLfo(s)
+	result.modLfo = newLfo(s)
 
-	result.oscillator = newOscillator(synthesizer)
-	result.filter = newBiQuadFilter(synthesizer)
+	result.oscillator = newOscillator(s)
+	result.filter = newBiQuadFilter(s)
 
-	result.block = make([]float32, synthesizer.BlockSize)
+	result.block = make([]float32, s.BlockSize)
 
 	return result
 }
 
-func (voice *voice) start(region regionPair, channel int32, key int32, velocity int32) {
+func (v *voice) start(region regionPair, channel int32, key int32, velocity int32) {
 
-	voice.exclusiveClass = region.GetExclusiveClass()
-	voice.channel = channel
-	voice.key = key
-	voice.velocity = velocity
+	v.exclusiveClass = region.GetExclusiveClass()
+	v.channel = channel
+	v.key = key
+	v.velocity = velocity
 
 	if velocity > 0 {
 		// According to the Polyphone's implementation, the initial attenuation should be reduced to 40%.
@@ -103,161 +103,161 @@ func (voice *voice) start(region regionPair, channel int32, key int32, velocity 
 		sampleAttenuation := 0.4 * region.GetInitialAttenuation()
 		filterAttenuation := 0.5 * region.GetInitialFilterQ()
 		decibels := 2*calcLinearToDecibels(float32(velocity)/float32(127)) - sampleAttenuation - filterAttenuation
-		voice.noteGain = calcDecibelsToLinear(decibels)
+		v.noteGain = calcDecibelsToLinear(decibels)
 	} else {
-		voice.noteGain = 0
+		v.noteGain = 0
 	}
 
-	voice.cutoff = region.GetInitialFilterCutoffFrequency()
-	voice.resonance = calcDecibelsToLinear(region.GetInitialFilterQ())
+	v.cutoff = region.GetInitialFilterCutoffFrequency()
+	v.resonance = calcDecibelsToLinear(region.GetInitialFilterQ())
 
-	voice.vibLfoToPitch = 0.01 * float32(region.GetVibratoLfoToPitch())
-	voice.modLfoToPitch = 0.01 * float32(region.GetModulationLfoToPitch())
-	voice.modEnvToPitch = 0.01 * float32(region.GetModulationEnvelopeToPitch())
+	v.vibLfoToPitch = 0.01 * float32(region.GetVibratoLfoToPitch())
+	v.modLfoToPitch = 0.01 * float32(region.GetModulationLfoToPitch())
+	v.modEnvToPitch = 0.01 * float32(region.GetModulationEnvelopeToPitch())
 
-	voice.modLfoToCutoff = region.GetModulationLfoToFilterCutoffFrequency()
-	voice.modEnvToCutoff = region.GetModulationEnvelopeToFilterCutoffFrequency()
-	voice.dynamicCutoff = voice.modLfoToCutoff != 0 || voice.modEnvToCutoff != 0
+	v.modLfoToCutoff = region.GetModulationLfoToFilterCutoffFrequency()
+	v.modEnvToCutoff = region.GetModulationEnvelopeToFilterCutoffFrequency()
+	v.dynamicCutoff = v.modLfoToCutoff != 0 || v.modEnvToCutoff != 0
 
-	voice.modLfoToVolume = region.GetModulationLfoToVolume()
-	voice.dynamicVolume = voice.modLfoToVolume > 0.05
+	v.modLfoToVolume = region.GetModulationLfoToVolume()
+	v.dynamicVolume = v.modLfoToVolume > 0.05
 
-	voice.instrumentPan = calcClamp(region.GetPan(), -50, 50)
-	voice.instrumentReverb = 0.01 * region.GetReverbEffectsSend()
-	voice.instrumentChorus = 0.01 * region.GetChorusEffectsSend()
+	v.instrumentPan = calcClamp(region.GetPan(), -50, 50)
+	v.instrumentReverb = 0.01 * region.GetReverbEffectsSend()
+	v.instrumentChorus = 0.01 * region.GetChorusEffectsSend()
 
-	voice.volEnv.startByRegion(region, key, velocity)
-	voice.modEnv.startByRegion(region, key, velocity)
-	voice.vibLfo.startVibrato(region, key, velocity)
-	voice.modLfo.startModulation(region, key, velocity)
-	voice.oscillator.startByRegion(voice.synthesizer.SoundFont.WaveData, region)
-	voice.filter.clearBuffer()
-	voice.filter.setLowPassFilter(voice.cutoff, voice.resonance)
+	v.volEnv.startByRegion(region, key, velocity)
+	v.modEnv.startByRegion(region, key, velocity)
+	v.vibLfo.startVibrato(region, key, velocity)
+	v.modLfo.startModulation(region, key, velocity)
+	v.oscillator.startByRegion(v.synthesizer.SoundFont.WaveData, region)
+	v.filter.clearBuffer()
+	v.filter.setLowPassFilter(v.cutoff, v.resonance)
 
-	voice.smoothedCutoff = voice.cutoff
+	v.smoothedCutoff = v.cutoff
 
-	voice.voiceState = voice_Playing
-	voice.voiceLength = 0
+	v.voiceState = voice_Playing
+	v.voiceLength = 0
 }
 
-func (voice *voice) end() {
-	if voice.voiceState == voice_Playing {
-		voice.voiceState = voice_ReleaseRequested
+func (v *voice) end() {
+	if v.voiceState == voice_Playing {
+		v.voiceState = voice_ReleaseRequested
 	}
 }
 
-func (voice *voice) kill() {
-	voice.noteGain = 0
+func (v *voice) kill() {
+	v.noteGain = 0
 }
 
-func (voice *voice) process() bool {
+func (v *voice) process() bool {
 
-	if voice.noteGain < nonAudible {
+	if v.noteGain < nonAudible {
 		return false
 	}
 
-	channelInfo := voice.synthesizer.channels[voice.channel]
+	channelInfo := v.synthesizer.channels[v.channel]
 
-	voice.releaseIfNecessary(channelInfo)
+	v.releaseIfNecessary(channelInfo)
 
-	if !voice.volEnv.process(voice.synthesizer.BlockSize) {
+	if !v.volEnv.process(v.synthesizer.BlockSize) {
 		return false
 	}
 
-	voice.modEnv.process(voice.synthesizer.BlockSize)
-	voice.vibLfo.process()
-	voice.modLfo.process()
+	v.modEnv.process(v.synthesizer.BlockSize)
+	v.vibLfo.process()
+	v.modLfo.process()
 
-	vibPitchChange := (0.01*channelInfo.getModulation() + voice.vibLfoToPitch) * voice.vibLfo.value
-	modPitchChange := voice.modLfoToPitch*voice.modLfo.value + voice.modEnvToPitch*voice.modEnv.value
+	vibPitchChange := (0.01*channelInfo.getModulation() + v.vibLfoToPitch) * v.vibLfo.value
+	modPitchChange := v.modLfoToPitch*v.modLfo.value + v.modEnvToPitch*v.modEnv.value
 	channelPitchChange := channelInfo.getTune() + channelInfo.getPitchBend()
-	pitch := float32(voice.key) + vibPitchChange + modPitchChange + channelPitchChange
-	if !voice.oscillator.process(voice.block, pitch) {
+	pitch := float32(v.key) + vibPitchChange + modPitchChange + channelPitchChange
+	if !v.oscillator.process(v.block, pitch) {
 		return false
 	}
 
-	if voice.dynamicCutoff {
-		cents := float32(voice.modLfoToCutoff)*voice.modLfo.value + float32(voice.modEnvToCutoff)*voice.modEnv.value
+	if v.dynamicCutoff {
+		cents := float32(v.modLfoToCutoff)*v.modLfo.value + float32(v.modEnvToCutoff)*v.modEnv.value
 		factor := calcCentsToMultiplyingFactor(cents)
-		newCutoff := factor * voice.cutoff
+		newCutoff := factor * v.cutoff
 
 		// The cutoff change is limited within x0.5 and x2 to reduce pop noise.
-		lowerLimit := 0.5 * voice.smoothedCutoff
-		upperLimit := 2 * voice.smoothedCutoff
+		lowerLimit := 0.5 * v.smoothedCutoff
+		upperLimit := 2 * v.smoothedCutoff
 		if newCutoff < lowerLimit {
-			voice.smoothedCutoff = lowerLimit
+			v.smoothedCutoff = lowerLimit
 		} else if newCutoff > upperLimit {
-			voice.smoothedCutoff = upperLimit
+			v.smoothedCutoff = upperLimit
 		} else {
-			voice.smoothedCutoff = newCutoff
+			v.smoothedCutoff = newCutoff
 		}
 
-		voice.filter.setLowPassFilter(voice.smoothedCutoff, voice.resonance)
+		v.filter.setLowPassFilter(v.smoothedCutoff, v.resonance)
 	}
-	voice.filter.process(voice.block)
+	v.filter.process(v.block)
 
-	voice.previousMixGainLeft = voice.currentMixGainLeft
-	voice.previousMixGainRight = voice.currentMixGainRight
-	voice.previousReverbSend = voice.currentReverbSend
-	voice.previousChorusSend = voice.currentChorusSend
+	v.previousMixGainLeft = v.currentMixGainLeft
+	v.previousMixGainRight = v.currentMixGainRight
+	v.previousReverbSend = v.currentReverbSend
+	v.previousChorusSend = v.currentChorusSend
 
 	// According to the GM spec, the following value should be squared.
 	ve := channelInfo.getVolume() * channelInfo.getExpression()
 	channelGain := ve * ve
 
-	mixGain := voice.noteGain * channelGain * voice.volEnv.value
-	if voice.dynamicVolume {
-		decibels := voice.modLfoToVolume * voice.modLfo.value
+	mixGain := v.noteGain * channelGain * v.volEnv.value
+	if v.dynamicVolume {
+		decibels := v.modLfoToVolume * v.modLfo.value
 		mixGain *= calcDecibelsToLinear(decibels)
 	}
 
-	angle := float32(math.Pi/200) * (channelInfo.getPan() + voice.instrumentPan + 50)
+	angle := float32(math.Pi/200) * (channelInfo.getPan() + v.instrumentPan + 50)
 	if angle <= 0 {
-		voice.currentMixGainLeft = mixGain
-		voice.currentMixGainRight = 0
+		v.currentMixGainLeft = mixGain
+		v.currentMixGainRight = 0
 	} else if angle >= halfPi {
-		voice.currentMixGainLeft = 0
-		voice.currentMixGainRight = mixGain
+		v.currentMixGainLeft = 0
+		v.currentMixGainRight = mixGain
 	} else {
-		voice.currentMixGainLeft = mixGain * float32(math.Cos(float64(angle)))
-		voice.currentMixGainRight = mixGain * float32(math.Sin(float64(angle)))
+		v.currentMixGainLeft = mixGain * float32(math.Cos(float64(angle)))
+		v.currentMixGainRight = mixGain * float32(math.Sin(float64(angle)))
 	}
 
-	voice.currentReverbSend = calcClamp(channelInfo.getReverbSend()+voice.instrumentReverb, 0, 1)
-	voice.currentChorusSend = calcClamp(channelInfo.getChorusSend()+voice.instrumentChorus, 0, 1)
+	v.currentReverbSend = calcClamp(channelInfo.getReverbSend()+v.instrumentReverb, 0, 1)
+	v.currentChorusSend = calcClamp(channelInfo.getChorusSend()+v.instrumentChorus, 0, 1)
 
-	if voice.voiceLength == 0 {
-		voice.previousMixGainLeft = voice.currentMixGainLeft
-		voice.previousMixGainRight = voice.currentMixGainRight
-		voice.previousReverbSend = voice.currentReverbSend
-		voice.previousChorusSend = voice.currentChorusSend
+	if v.voiceLength == 0 {
+		v.previousMixGainLeft = v.currentMixGainLeft
+		v.previousMixGainRight = v.currentMixGainRight
+		v.previousReverbSend = v.currentReverbSend
+		v.previousChorusSend = v.currentChorusSend
 	}
 
-	voice.voiceLength += voice.synthesizer.BlockSize
+	v.voiceLength += v.synthesizer.BlockSize
 
 	return true
 }
 
-func (voice *voice) releaseIfNecessary(channelInfo *channel) {
+func (v *voice) releaseIfNecessary(channelInfo *channel) {
 
-	if voice.voiceLength < voice.synthesizer.minimumVoiceDuration {
+	if v.voiceLength < v.synthesizer.minimumVoiceDuration {
 		return
 	}
 
-	if voice.voiceState == voice_ReleaseRequested && !channelInfo.holdPedal {
-		voice.volEnv.release()
-		voice.modEnv.release()
-		voice.oscillator.release()
+	if v.voiceState == voice_ReleaseRequested && !channelInfo.holdPedal {
+		v.volEnv.release()
+		v.modEnv.release()
+		v.oscillator.release()
 
-		voice.voiceState = voice_Released
+		v.voiceState = voice_Released
 	}
 }
 
-func (voice *voice) getPriority() float32 {
+func (v *voice) getPriority() float32 {
 
-	if voice.noteGain < nonAudible {
+	if v.noteGain < nonAudible {
 		return 0
 	} else {
-		return voice.volEnv.priority
+		return v.volEnv.priority
 	}
 }

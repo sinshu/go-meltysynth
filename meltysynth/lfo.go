@@ -11,9 +11,9 @@ type lfo struct {
 	value                float32
 }
 
-func newLfo(synthesizer *Synthesizer) *lfo {
+func newLfo(s *Synthesizer) *lfo {
 	result := new(lfo)
-	result.synthesizer = synthesizer
+	result.synthesizer = s
 	return result
 }
 

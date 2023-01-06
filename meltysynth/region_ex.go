@@ -2,7 +2,7 @@ package meltysynth
 
 import "math"
 
-func (oscillator *oscillator) startByRegion(data []int16, region regionPair) {
+func (o *oscillator) startByRegion(data []int16, region regionPair) {
 
 	sampleRate := region.instrument.Sample.SampleRate
 	loopMode := region.GetSampleModes()
@@ -15,10 +15,10 @@ func (oscillator *oscillator) startByRegion(data []int16, region regionPair) {
 	fineTune := region.GetFineTune()
 	scaleTuning := region.GetScaleTuning()
 
-	oscillator.start(data, loopMode, sampleRate, sampleStart, sampleEnd, startLoop, endLoop, rootKey, coarseTune, fineTune, scaleTuning)
+	o.start(data, loopMode, sampleRate, sampleStart, sampleEnd, startLoop, endLoop, rootKey, coarseTune, fineTune, scaleTuning)
 }
 
-func (envelope *volumeEnvelope) startByRegion(region regionPair, key int32, velocity int32) {
+func (env *volumeEnvelope) startByRegion(region regionPair, key int32, velocity int32) {
 
 	// If the release time is shorter than 10 ms, it will be clamped to 10 ms to avoid pop noise.
 
@@ -29,10 +29,10 @@ func (envelope *volumeEnvelope) startByRegion(region regionPair, key int32, velo
 	sustain := calcDecibelsToLinear(-region.GetSustainVolumeEnvelope())
 	release := float32(math.Max(float64(region.GetReleaseVolumeEnvelope()), 0.01))
 
-	envelope.start(delay, attack, hold, decay, sustain, release)
+	env.start(delay, attack, hold, decay, sustain, release)
 }
 
-func (envelope *modulationEnvelope) startByRegion(region regionPair, key int32, velocity int32) {
+func (env *modulationEnvelope) startByRegion(region regionPair, key int32, velocity int32) {
 
 	// According to the implementation of TinySoundFont, the attack time should be adjusted by the velocity.
 
@@ -43,7 +43,7 @@ func (envelope *modulationEnvelope) startByRegion(region regionPair, key int32, 
 	sustain := 1 - region.GetSustainModulationEnvelope()/100
 	release := region.GetReleaseModulationEnvelope()
 
-	envelope.start(delay, attack, hold, decay, sustain, release)
+	env.start(delay, attack, hold, decay, sustain, release)
 }
 
 func (lfo *lfo) startVibrato(region regionPair, key int32, velocity int32) {

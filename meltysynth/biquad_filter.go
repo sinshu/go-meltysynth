@@ -20,30 +20,30 @@ type biQuadFilter struct {
 	y2          float32
 }
 
-func newBiQuadFilter(synthesizer *Synthesizer) *biQuadFilter {
+func newBiQuadFilter(s *Synthesizer) *biQuadFilter {
 	result := new(biQuadFilter)
-	result.synthesizer = synthesizer
+	result.synthesizer = s
 	return result
 }
 
-func (filter *biQuadFilter) clearBuffer() {
-	filter.x1 = 0
-	filter.x2 = 0
-	filter.y1 = 0
-	filter.y2 = 0
+func (bf *biQuadFilter) clearBuffer() {
+	bf.x1 = 0
+	bf.x2 = 0
+	bf.y1 = 0
+	bf.y2 = 0
 }
 
-func (filter *biQuadFilter) setLowPassFilter(cutoffFrequency float32, resonance float32) {
+func (bf *biQuadFilter) setLowPassFilter(cutoffFrequency float32, resonance float32) {
 
-	if cutoffFrequency < 0.499*float32(filter.synthesizer.SampleRate) {
+	if cutoffFrequency < 0.499*float32(bf.synthesizer.SampleRate) {
 
-		filter.active = true
+		bf.active = true
 
 		// This equation gives the Q value which makes the desired resonance peak.
 		// The error of the resultant peak height is less than 3%.
 		q := resonance - resonancePeakOffset/(1+6*(resonance-1))
 
-		w := 2 * math.Pi * float64(cutoffFrequency) / float64(filter.synthesizer.SampleRate)
+		w := 2 * math.Pi * float64(cutoffFrequency) / float64(bf.synthesizer.SampleRate)
 		cosw := math.Cos(w)
 		alpha := math.Sin(w) / float64(2*q)
 
@@ -54,46 +54,46 @@ func (filter *biQuadFilter) setLowPassFilter(cutoffFrequency float32, resonance 
 		a1 := -2 * cosw
 		a2 := 1 - alpha
 
-		filter.setCoefficients(float32(a0), float32(a1), float32(a2), float32(b0), float32(b1), float32(b2))
+		bf.setCoefficients(float32(a0), float32(a1), float32(a2), float32(b0), float32(b1), float32(b2))
 
 	} else {
 
-		filter.active = false
+		bf.active = false
 	}
 }
 
-func (filter *biQuadFilter) process(block []float32) {
+func (bf *biQuadFilter) process(block []float32) {
 
 	blockLength := len(block)
 
-	if filter.active {
+	if bf.active {
 
 		for t := 0; t < blockLength; t++ {
 
 			input := block[t]
-			output := filter.a0*input + filter.a1*filter.x1 + filter.a2*filter.x2 - filter.a3*filter.y1 - filter.a4*filter.y2
+			output := bf.a0*input + bf.a1*bf.x1 + bf.a2*bf.x2 - bf.a3*bf.y1 - bf.a4*bf.y2
 
-			filter.x2 = filter.x1
-			filter.x1 = input
-			filter.y2 = filter.y1
-			filter.y1 = output
+			bf.x2 = bf.x1
+			bf.x1 = input
+			bf.y2 = bf.y1
+			bf.y1 = output
 
 			block[t] = output
 		}
 
 	} else {
 
-		filter.x2 = block[blockLength-2]
-		filter.x1 = block[blockLength-1]
-		filter.y2 = filter.x2
-		filter.y1 = filter.x1
+		bf.x2 = block[blockLength-2]
+		bf.x1 = block[blockLength-1]
+		bf.y2 = bf.x2
+		bf.y1 = bf.x1
 	}
 }
 
-func (filter *biQuadFilter) setCoefficients(a0 float32, a1 float32, a2 float32, b0 float32, b1 float32, b2 float32) {
-	filter.a0 = b0 / a0
-	filter.a1 = b1 / a0
-	filter.a2 = b2 / a0
-	filter.a3 = a1 / a0
-	filter.a4 = a2 / a0
+func (bf *biQuadFilter) setCoefficients(a0 float32, a1 float32, a2 float32, b0 float32, b1 float32, b2 float32) {
+	bf.a0 = b0 / a0
+	bf.a1 = b1 / a0
+	bf.a2 = b2 / a0
+	bf.a3 = a1 / a0
+	bf.a4 = a2 / a0
 }

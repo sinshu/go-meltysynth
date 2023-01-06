@@ -15,12 +15,12 @@ type SoundFont struct {
 	Instruments   []*Instrument
 }
 
-func NewSoundFont(reader io.Reader) (*SoundFont, error) {
+func NewSoundFont(r io.Reader) (*SoundFont, error) {
 
 	var err error
 
 	var chunkId string
-	chunkId, err = readFourCC(reader)
+	chunkId, err = readFourCC(r)
 	if err != nil {
 		return nil, err
 	}
@@ -29,13 +29,13 @@ func NewSoundFont(reader io.Reader) (*SoundFont, error) {
 	}
 
 	var size int32
-	err = binary.Read(reader, binary.LittleEndian, &size)
+	err = binary.Read(r, binary.LittleEndian, &size)
 	if err != nil {
 		return nil, err
 	}
 
 	var formType string
-	formType, err = readFourCC(reader)
+	formType, err = readFourCC(r)
 	if err != nil {
 		return nil, err
 	}
@@ -45,13 +45,13 @@ func NewSoundFont(reader io.Reader) (*SoundFont, error) {
 
 	result := new(SoundFont)
 
-	result.Info, err = newSoundFontInfo(reader)
+	result.Info, err = newSoundFontInfo(r)
 	if err != nil {
 		return nil, err
 	}
 
 	var sampleData *soundFontSampleData
-	sampleData, err = newSoundFontSampleData(reader)
+	sampleData, err = newSoundFontSampleData(r)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func NewSoundFont(reader io.Reader) (*SoundFont, error) {
 	result.WaveData = sampleData.samples
 
 	var parameters *soundFontParameters
-	parameters, err = newSoundFontParameters(reader)
+	parameters, err = newSoundFontParameters(r)
 	if err != nil {
 		return nil, err
 	}

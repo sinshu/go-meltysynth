@@ -71,13 +71,13 @@ func createPresetRegions(preset *Preset, zones []*zone, instruments []*Instrumen
 	}
 }
 
-func (region *PresetRegion) setParameter(parameter generator) {
+func (region *PresetRegion) setParameter(param generator) {
 
-	index := parameter.generatorType
+	index := param.generatorType
 
 	// Unknown generators should be ignored.
 	if 0 <= int(index) && int(index) < len(region.gs) {
-		region.gs[index] = int16(parameter.value)
+		region.gs[index] = int16(param.value)
 	}
 }
 

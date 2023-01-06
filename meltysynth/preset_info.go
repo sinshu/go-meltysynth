@@ -17,7 +17,7 @@ type presetInfo struct {
 	morphology     int32
 }
 
-func readPresetsFromChunk(reader io.Reader, size int32) ([]*presetInfo, error) {
+func readPresetsFromChunk(r io.Reader, size int32) ([]*presetInfo, error) {
 
 	var err error
 
@@ -33,48 +33,48 @@ func readPresetsFromChunk(reader io.Reader, size int32) ([]*presetInfo, error) {
 
 		preset := new(presetInfo)
 
-		preset.name, err = readFixedLengthString(reader, 20)
+		preset.name, err = readFixedLengthString(r, 20)
 		if err != nil {
 			return nil, err
 		}
 
 		var patchNumber uint16
-		err = binary.Read(reader, binary.LittleEndian, &patchNumber)
+		err = binary.Read(r, binary.LittleEndian, &patchNumber)
 		if err != nil {
 			return nil, err
 		}
 		preset.patchNumber = int32(patchNumber)
 
 		var bankNumber uint16
-		err = binary.Read(reader, binary.LittleEndian, &bankNumber)
+		err = binary.Read(r, binary.LittleEndian, &bankNumber)
 		if err != nil {
 			return nil, err
 		}
 		preset.bankNumber = int32(bankNumber)
 
 		var zoneStartIndex uint16
-		err = binary.Read(reader, binary.LittleEndian, &zoneStartIndex)
+		err = binary.Read(r, binary.LittleEndian, &zoneStartIndex)
 		if err != nil {
 			return nil, err
 		}
 		preset.zoneStartIndex = int32(zoneStartIndex)
 
 		var library int32
-		err = binary.Read(reader, binary.LittleEndian, &library)
+		err = binary.Read(r, binary.LittleEndian, &library)
 		if err != nil {
 			return nil, err
 		}
 		preset.library = library
 
 		var genre int32
-		err = binary.Read(reader, binary.LittleEndian, &genre)
+		err = binary.Read(r, binary.LittleEndian, &genre)
 		if err != nil {
 			return nil, err
 		}
 		preset.genre = genre
 
 		var morphology int32
-		err = binary.Read(reader, binary.LittleEndian, &morphology)
+		err = binary.Read(r, binary.LittleEndian, &morphology)
 		if err != nil {
 			return nil, err
 		}

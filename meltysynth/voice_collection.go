@@ -8,15 +8,15 @@ type voiceCollection struct {
 	activeVoiceCount int32
 }
 
-func newVoiceCollection(synthesizer *Synthesizer, maxActiveVoiceCount int32) *voiceCollection {
+func newVoiceCollection(s *Synthesizer, maxActiveVoiceCount int32) *voiceCollection {
 
 	result := new(voiceCollection)
 
-	result.synthesizer = synthesizer
+	result.synthesizer = s
 
 	result.voices = make([]*voice, maxActiveVoiceCount)
 	for i := 0; i < len(result.voices); i++ {
-		result.voices[i] = newVoice(synthesizer)
+		result.voices[i] = newVoice(s)
 	}
 
 	result.activeVoiceCount = 0
@@ -24,14 +24,14 @@ func newVoiceCollection(synthesizer *Synthesizer, maxActiveVoiceCount int32) *vo
 	return result
 }
 
-func (collection *voiceCollection) requestNew(region *InstrumentRegion, channel int32) *voice {
+func (vc *voiceCollection) requestNew(region *InstrumentRegion, channel int32) *voice {
 
 	// If an exclusive class is assigned to the region, find a voice with the same class.
 	// If found, reuse it to avoid playing multiple voices with the same class at a time.
 	exclusiveClass := region.GetExclusiveClass()
 	if exclusiveClass != 0 {
-		for i := int32(0); i < collection.activeVoiceCount; i++ {
-			voice := collection.voices[i]
+		for i := int32(0); i < vc.activeVoiceCount; i++ {
+			voice := vc.voices[i]
 			if voice.exclusiveClass == exclusiveClass && voice.channel == channel {
 				return voice
 			}
@@ -39,9 +39,9 @@ func (collection *voiceCollection) requestNew(region *InstrumentRegion, channel 
 	}
 
 	// If the number of active voices is less than the limit, use a free one.
-	if int(collection.activeVoiceCount) < len(collection.voices) {
-		free := collection.voices[collection.activeVoiceCount]
-		collection.activeVoiceCount++
+	if int(vc.activeVoiceCount) < len(vc.voices) {
+		free := vc.voices[vc.activeVoiceCount]
+		vc.activeVoiceCount++
 		return free
 	}
 
@@ -49,8 +49,8 @@ func (collection *voiceCollection) requestNew(region *InstrumentRegion, channel 
 	// Find one which has the lowest priority.
 	var candidate *voice = nil
 	var lowestPriority float32 = math.MaxFloat32
-	for i := int32(0); i < collection.activeVoiceCount; i++ {
-		voice := collection.voices[i]
+	for i := int32(0); i < vc.activeVoiceCount; i++ {
+		voice := vc.voices[i]
 		priority := voice.getPriority()
 		if priority < lowestPriority {
 			lowestPriority = priority
@@ -66,27 +66,27 @@ func (collection *voiceCollection) requestNew(region *InstrumentRegion, channel 
 	return candidate
 }
 
-func (collection *voiceCollection) process() {
+func (vc *voiceCollection) process() {
 
 	var i int32 = 0
 
 	for {
-		if i == collection.activeVoiceCount {
+		if i == vc.activeVoiceCount {
 			return
 		}
 
-		if collection.voices[i].process() {
+		if vc.voices[i].process() {
 			i++
 		} else {
-			collection.activeVoiceCount--
+			vc.activeVoiceCount--
 
-			tmp := collection.voices[i]
-			collection.voices[i] = collection.voices[collection.activeVoiceCount]
-			collection.voices[collection.activeVoiceCount] = tmp
+			tmp := vc.voices[i]
+			vc.voices[i] = vc.voices[vc.activeVoiceCount]
+			vc.voices[vc.activeVoiceCount] = tmp
 		}
 	}
 }
 
-func (collection *voiceCollection) clear() {
-	collection.activeVoiceCount = 0
+func (vc *voiceCollection) clear() {
+	vc.activeVoiceCount = 0
 }

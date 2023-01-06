@@ -19,61 +19,61 @@ type modulationEnvelope struct {
 	value                float32
 }
 
-func newModulationEnvelope(synthesizer *Synthesizer) *modulationEnvelope {
+func newModulationEnvelope(s *Synthesizer) *modulationEnvelope {
 	result := new(modulationEnvelope)
-	result.synthesizer = synthesizer
+	result.synthesizer = s
 	return result
 }
 
-func (envelope *modulationEnvelope) start(delay float32, attack float32, hold float32, decay float32, sustain float32, release float32) {
+func (env *modulationEnvelope) start(delay float32, attack float32, hold float32, decay float32, sustain float32, release float32) {
 
-	envelope.attackSlope = 1 / float64(attack)
-	envelope.decaySlope = 1 / float64(decay)
-	envelope.releaseSlope = 1 / float64(release)
+	env.attackSlope = 1 / float64(attack)
+	env.decaySlope = 1 / float64(decay)
+	env.releaseSlope = 1 / float64(release)
 
-	envelope.attackStartTime = float64(delay)
-	envelope.holdStartTime = envelope.attackStartTime + float64(attack)
-	envelope.decayStartTime = envelope.holdStartTime + float64(hold)
+	env.attackStartTime = float64(delay)
+	env.holdStartTime = env.attackStartTime + float64(attack)
+	env.decayStartTime = env.holdStartTime + float64(hold)
 
-	envelope.decayEndTime = envelope.decayStartTime + float64(decay)
-	envelope.releaseEndTime = float64(release)
+	env.decayEndTime = env.decayStartTime + float64(decay)
+	env.releaseEndTime = float64(release)
 
-	envelope.sustainLevel = calcClamp(sustain, 0, 1)
-	envelope.releaseLevel = 0
+	env.sustainLevel = calcClamp(sustain, 0, 1)
+	env.releaseLevel = 0
 
-	envelope.processedSampleCount = 0
-	envelope.stage = env_Delay
-	envelope.value = 0
+	env.processedSampleCount = 0
+	env.stage = env_Delay
+	env.value = 0
 
-	envelope.process(0)
+	env.process(0)
 }
 
-func (envelope *modulationEnvelope) release() {
+func (env *modulationEnvelope) release() {
 
-	envelope.stage = env_Release
-	envelope.releaseEndTime += float64(envelope.processedSampleCount) / float64(envelope.synthesizer.SampleRate)
-	envelope.releaseLevel = envelope.value
+	env.stage = env_Release
+	env.releaseEndTime += float64(env.processedSampleCount) / float64(env.synthesizer.SampleRate)
+	env.releaseLevel = env.value
 }
 
-func (envelope *modulationEnvelope) process(sampleCount int32) bool {
+func (env *modulationEnvelope) process(sampleCount int32) bool {
 
-	envelope.processedSampleCount += sampleCount
+	env.processedSampleCount += sampleCount
 
-	currentTime := float64(envelope.processedSampleCount) / float64(envelope.synthesizer.SampleRate)
+	currentTime := float64(env.processedSampleCount) / float64(env.synthesizer.SampleRate)
 
-	for envelope.stage <= env_Hold {
+	for env.stage <= env_Hold {
 
 		var endTime float64
-		switch envelope.stage {
+		switch env.stage {
 
 		case env_Delay:
-			endTime = envelope.attackStartTime
+			endTime = env.attackStartTime
 
 		case env_Attack:
-			endTime = envelope.holdStartTime
+			endTime = env.holdStartTime
 
 		case env_Hold:
-			endTime = envelope.decayStartTime
+			endTime = env.decayStartTime
 
 		default:
 			panic("invalid envelope stage")
@@ -82,31 +82,31 @@ func (envelope *modulationEnvelope) process(sampleCount int32) bool {
 		if currentTime < endTime {
 			break
 		} else {
-			envelope.stage++
+			env.stage++
 		}
 	}
 
-	switch envelope.stage {
+	switch env.stage {
 
 	case env_Delay:
-		envelope.value = 0
+		env.value = 0
 		return true
 
 	case env_Attack:
-		envelope.value = float32(envelope.attackSlope * (currentTime - envelope.attackStartTime))
+		env.value = float32(env.attackSlope * (currentTime - env.attackStartTime))
 		return true
 
 	case env_Hold:
-		envelope.value = 1
+		env.value = 1
 		return true
 
 	case env_Decay:
-		envelope.value = float32(math.Max(envelope.decaySlope*(envelope.decayEndTime-currentTime), float64(envelope.sustainLevel)))
-		return envelope.value > nonAudible
+		env.value = float32(math.Max(env.decaySlope*(env.decayEndTime-currentTime), float64(env.sustainLevel)))
+		return env.value > nonAudible
 
 	case env_Release:
-		envelope.value = float32(math.Max(float64(envelope.releaseLevel)*float64(envelope.releaseSlope)*(envelope.releaseEndTime-currentTime), 0))
-		return envelope.value > nonAudible
+		env.value = float32(math.Max(float64(env.releaseLevel)*float64(env.releaseSlope)*(env.releaseEndTime-currentTime), 0))
+		return env.value > nonAudible
 
 	default:
 		panic("invalid envelope stage.")

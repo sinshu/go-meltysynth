@@ -11,7 +11,7 @@ type generator struct {
 	value         uint16
 }
 
-func readGeneratorsFromChunk(reader io.Reader, size int32) ([]generator, error) {
+func readGeneratorsFromChunk(r io.Reader, size int32) ([]generator, error) {
 
 	var n int
 	var err error
@@ -29,14 +29,14 @@ func readGeneratorsFromChunk(reader io.Reader, size int32) ([]generator, error) 
 		var gen generator
 
 		var generatorType uint16
-		err = binary.Read(reader, binary.LittleEndian, &generatorType)
+		err = binary.Read(r, binary.LittleEndian, &generatorType)
 		if err != nil {
 			return nil, err
 		}
 		gen.generatorType = generatorType
 
 		var value uint16
-		err = binary.Read(reader, binary.LittleEndian, &value)
+		err = binary.Read(r, binary.LittleEndian, &value)
 		if err != nil {
 			return nil, err
 		}
@@ -46,7 +46,7 @@ func readGeneratorsFromChunk(reader io.Reader, size int32) ([]generator, error) 
 	}
 
 	// The last one is the terminator.
-	n, err = reader.Read(make([]byte, 4))
+	n, err = r.Read(make([]byte, 4))
 	if err != nil {
 		return nil, err
 	}

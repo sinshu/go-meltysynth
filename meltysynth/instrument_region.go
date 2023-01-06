@@ -10,7 +10,7 @@ type InstrumentRegion struct {
 	gs     [61]int16
 }
 
-func createInstrumentRegion(instrument *Instrument, global *zone, local *zone, samples []*SampleHeader) (*InstrumentRegion, error) {
+func createInstrumentRegion(inst *Instrument, global *zone, local *zone, samples []*SampleHeader) (*InstrumentRegion, error) {
 
 	result := new(InstrumentRegion)
 
@@ -44,14 +44,14 @@ func createInstrumentRegion(instrument *Instrument, global *zone, local *zone, s
 
 	id := result.gs[gen_SampleID]
 	if !(0 <= id && int(id) < len(samples)) {
-		return nil, errors.New("the instrument '" + instrument.Name + "' contains an invalid sample id '" + strconv.Itoa(int(id)) + "'")
+		return nil, errors.New("the instrument '" + inst.Name + "' contains an invalid sample id '" + strconv.Itoa(int(id)) + "'")
 	}
 	result.Sample = samples[id]
 
 	return result, nil
 }
 
-func createInstrumentRegions(instrument *Instrument, zones []*zone, samples []*SampleHeader) ([]*InstrumentRegion, error) {
+func createInstrumentRegions(inst *Instrument, zones []*zone, samples []*SampleHeader) ([]*InstrumentRegion, error) {
 
 	var err error
 
@@ -65,7 +65,7 @@ func createInstrumentRegions(instrument *Instrument, zones []*zone, samples []*S
 		count := len(zones) - 1
 		regions := make([]*InstrumentRegion, count)
 		for i := 0; i < count; i++ {
-			regions[i], err = createInstrumentRegion(instrument, global, zones[i+1], samples)
+			regions[i], err = createInstrumentRegion(inst, global, zones[i+1], samples)
 			if err != nil {
 				return nil, err
 			}
@@ -78,7 +78,7 @@ func createInstrumentRegions(instrument *Instrument, zones []*zone, samples []*S
 		count := len(zones)
 		regions := make([]*InstrumentRegion, count)
 		for i := 0; i < count; i++ {
-			regions[i], err = createInstrumentRegion(instrument, createEmptyZone(), zones[i], samples)
+			regions[i], err = createInstrumentRegion(inst, createEmptyZone(), zones[i], samples)
 			if err != nil {
 				return nil, err
 			}
@@ -87,13 +87,13 @@ func createInstrumentRegions(instrument *Instrument, zones []*zone, samples []*S
 	}
 }
 
-func (region *InstrumentRegion) setParameter(parameter generator) {
+func (region *InstrumentRegion) setParameter(param generator) {
 
-	index := parameter.generatorType
+	index := param.generatorType
 
 	// Unknown generators should be ignored.
 	if 0 <= int(index) && int(index) < len(region.gs) {
-		region.gs[index] = int16(parameter.value)
+		region.gs[index] = int16(param.value)
 	}
 }
 

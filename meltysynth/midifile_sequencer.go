@@ -15,78 +15,78 @@ type MidiFileSequencer struct {
 	loopIndex   int32
 }
 
-func NewMidiFileSequencer(synthesizer *Synthesizer) *MidiFileSequencer {
+func NewMidiFileSequencer(s *Synthesizer) *MidiFileSequencer {
 	result := new(MidiFileSequencer)
-	result.synthesizer = synthesizer
+	result.synthesizer = s
 	return result
 }
 
-func (sequencer *MidiFileSequencer) Play(midiFile *MidiFile, loop bool) {
+func (seq *MidiFileSequencer) Play(midiFile *MidiFile, loop bool) {
 
-	sequencer.midiFile = midiFile
-	sequencer.loop = loop
+	seq.midiFile = midiFile
+	seq.loop = loop
 
-	sequencer.blockWrote = sequencer.synthesizer.BlockSize
+	seq.blockWrote = seq.synthesizer.BlockSize
 
-	sequencer.currentTime = time.Duration(0)
-	sequencer.msgIndex = 0
-	sequencer.loopIndex = 0
+	seq.currentTime = time.Duration(0)
+	seq.msgIndex = 0
+	seq.loopIndex = 0
 
-	sequencer.synthesizer.Reset()
+	seq.synthesizer.Reset()
 }
 
-func (sequencer *MidiFileSequencer) Stop() {
+func (seq *MidiFileSequencer) Stop() {
 
-	sequencer.midiFile = nil
+	seq.midiFile = nil
 
-	sequencer.synthesizer.Reset()
+	seq.synthesizer.Reset()
 }
 
-func (sequencer *MidiFileSequencer) Render(left []float32, right []float32) {
+func (seq *MidiFileSequencer) Render(left []float32, right []float32) {
 
 	wrote := int32(0)
 	length := int32(len(left))
 	for wrote < length {
-		if sequencer.blockWrote == sequencer.synthesizer.BlockSize {
-			sequencer.processEvents()
-			sequencer.blockWrote = 0
-			sequencer.currentTime += time.Duration(float64(time.Second) * float64(sequencer.synthesizer.BlockSize) / float64(sequencer.synthesizer.SampleRate))
+		if seq.blockWrote == seq.synthesizer.BlockSize {
+			seq.processEvents()
+			seq.blockWrote = 0
+			seq.currentTime += time.Duration(float64(time.Second) * float64(seq.synthesizer.BlockSize) / float64(seq.synthesizer.SampleRate))
 		}
 
-		srcRem := sequencer.synthesizer.BlockSize - sequencer.blockWrote
+		srcRem := seq.synthesizer.BlockSize - seq.blockWrote
 		dstRem := length - wrote
 		rem := int32(math.Min(float64(srcRem), float64(dstRem)))
 
-		sequencer.synthesizer.Render(left[wrote:wrote+rem], right[wrote:wrote+rem])
+		seq.synthesizer.Render(left[wrote:wrote+rem], right[wrote:wrote+rem])
 
-		sequencer.blockWrote += rem
+		seq.blockWrote += rem
 		wrote += rem
 	}
 }
 
-func (sequencer *MidiFileSequencer) processEvents() {
+func (seq *MidiFileSequencer) processEvents() {
 
-	if sequencer.midiFile == nil {
+	if seq.midiFile == nil {
 		return
 	}
 
-	msgLength := int32(len(sequencer.midiFile.messages))
-	for sequencer.msgIndex < msgLength {
-		time := sequencer.midiFile.times[sequencer.msgIndex]
-		msg := sequencer.midiFile.messages[sequencer.msgIndex]
-		if time <= sequencer.currentTime {
+	msgLength := int32(len(seq.midiFile.messages))
+	for seq.msgIndex < msgLength {
+		time := seq.midiFile.times[seq.msgIndex]
+		msg := seq.midiFile.messages[seq.msgIndex]
+		if time <= seq.currentTime {
 			if msg.getMessageType() == msg_Normal {
-				sequencer.synthesizer.ProcessMidiMessage(int32(msg.channel), int32(msg.command), int32(msg.data1), int32(msg.data2))
+				seq.synthesizer.ProcessMidiMessage(int32(msg.channel), int32(msg.command), int32(msg.data1), int32(msg.data2))
 			}
-			sequencer.msgIndex++
+			seq.msgIndex++
 		} else {
 			break
 		}
 	}
 
-	if sequencer.msgIndex == msgLength && sequencer.loop {
-		sequencer.currentTime = 0
-		sequencer.msgIndex = 0
-		sequencer.synthesizer.NoteOffAll(false)
+	if seq.msgIndex == msgLength && seq.loop {
+		seq.currentTime = 0
+		seq.msgIndex = 0
+		seq.synthesizer.NoteOffAll(false)
 	}
 }

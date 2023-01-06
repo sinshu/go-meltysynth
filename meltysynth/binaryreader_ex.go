@@ -6,10 +6,10 @@ import (
 	"io"
 )
 
-func readFourCC(reader io.Reader) (string, error) {
+func readFourCC(r io.Reader) (string, error) {
 
 	var data [4]byte
-	n, err := reader.Read(data[:])
+	n, err := r.Read(data[:])
 	if err != nil {
 		return "", err
 	}
@@ -27,10 +27,10 @@ func readFourCC(reader io.Reader) (string, error) {
 	return string(data[:]), nil
 }
 
-func readFixedLengthString(reader io.Reader, length int32) (string, error) {
+func readFixedLengthString(r io.Reader, length int32) (string, error) {
 
 	var data []byte = make([]byte, length)
-	n, err := reader.Read(data[:])
+	n, err := r.Read(data[:])
 	if err != nil {
 		return "", err
 	}
@@ -48,13 +48,13 @@ func readFixedLengthString(reader io.Reader, length int32) (string, error) {
 	return string(data[0:actualLength]), nil
 }
 
-func readIntVariableLength(reader io.Reader) (int32, error) {
+func readIntVariableLength(r io.Reader) (int32, error) {
 
 	acc := int32(0)
 	count := 0
 	for {
 		var value byte
-		err := binary.Read(reader, binary.LittleEndian, &value)
+		err := binary.Read(r, binary.LittleEndian, &value)
 		if err != nil {
 			return 0, err
 		}

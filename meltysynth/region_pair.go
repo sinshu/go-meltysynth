@@ -5,12 +5,12 @@ type regionPair struct {
 	instrument *InstrumentRegion
 }
 
-func newRegionPair(preset *PresetRegion, instrument *InstrumentRegion) regionPair {
+func newRegionPair(preset *PresetRegion, inst *InstrumentRegion) regionPair {
 
 	var result regionPair
 
 	result.preset = preset
-	result.instrument = instrument
+	result.instrument = inst
 
 	return result
 }

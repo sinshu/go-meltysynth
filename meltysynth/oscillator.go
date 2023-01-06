@@ -30,70 +30,70 @@ type oscillator struct {
 	position_fp      int64
 }
 
-func newOscillator(synthesizer *Synthesizer) *oscillator {
+func newOscillator(s *Synthesizer) *oscillator {
 	result := new(oscillator)
-	result.synthesizer = synthesizer
+	result.synthesizer = s
 	return result
 }
 
-func (oscillator *oscillator) start(data []int16, loopMode int32, sampleRate int32, start int32, end int32, startLoop int32, endLoop int32, rootKey int32, coarseTune int32, fineTune int32, scaleTuning int32) {
+func (o *oscillator) start(data []int16, loopMode int32, sampleRate int32, start int32, end int32, startLoop int32, endLoop int32, rootKey int32, coarseTune int32, fineTune int32, scaleTuning int32) {
 
-	oscillator.data = data
-	oscillator.loopMode = loopMode
-	oscillator.sampleRate = sampleRate
-	oscillator.sampleStart = start
-	oscillator.sampleEnd = end
-	oscillator.startLoop = startLoop
-	oscillator.endLoop = endLoop
-	oscillator.rootKey = rootKey
+	o.data = data
+	o.loopMode = loopMode
+	o.sampleRate = sampleRate
+	o.sampleStart = start
+	o.sampleEnd = end
+	o.startLoop = startLoop
+	o.endLoop = endLoop
+	o.rootKey = rootKey
 
-	oscillator.tune = float32(coarseTune) + float32(0.01)*float32(fineTune)
-	oscillator.pitchChangeScale = float32(0.01) * float32(scaleTuning)
-	oscillator.sampleRateRatio = float32(sampleRate) / float32(oscillator.synthesizer.SampleRate)
+	o.tune = float32(coarseTune) + float32(0.01)*float32(fineTune)
+	o.pitchChangeScale = float32(0.01) * float32(scaleTuning)
+	o.sampleRateRatio = float32(sampleRate) / float32(o.synthesizer.SampleRate)
 
 	if loopMode == loop_NoLoop {
-		oscillator.looping = false
+		o.looping = false
 	} else {
-		oscillator.looping = true
+		o.looping = true
 	}
 
-	oscillator.position_fp = int64(start) << fracBits
+	o.position_fp = int64(start) << fracBits
 }
 
-func (oscillator *oscillator) release() {
+func (o *oscillator) release() {
 
-	if oscillator.loopMode == loop_LoopUntilNoteOff {
-		oscillator.looping = false
+	if o.loopMode == loop_LoopUntilNoteOff {
+		o.looping = false
 	}
 }
 
-func (oscillator *oscillator) process(block []float32, pitch float32) bool {
+func (o *oscillator) process(block []float32, pitch float32) bool {
 
-	pitchChange := oscillator.pitchChangeScale*(pitch-float32(oscillator.rootKey)) + oscillator.tune
-	pitchRatio := float64(oscillator.sampleRateRatio) * math.Pow(float64(2), float64(pitchChange)/float64(12))
-	return oscillator.fillBlock(block, pitchRatio)
+	pitchChange := o.pitchChangeScale*(pitch-float32(o.rootKey)) + o.tune
+	pitchRatio := float64(o.sampleRateRatio) * math.Pow(float64(2), float64(pitchChange)/float64(12))
+	return o.fillBlock(block, pitchRatio)
 }
 
-func (oscillator *oscillator) fillBlock(block []float32, pitchRatio float64) bool {
+func (o *oscillator) fillBlock(block []float32, pitchRatio float64) bool {
 
 	pitchRatio_fp := int64(float64(fracUnit) * pitchRatio)
 
-	if oscillator.looping {
-		return oscillator.fillBlock_Continuous(block, pitchRatio_fp)
+	if o.looping {
+		return o.fillBlock_Continuous(block, pitchRatio_fp)
 	} else {
-		return oscillator.fillBlock_NoLoop(block, pitchRatio_fp)
+		return o.fillBlock_NoLoop(block, pitchRatio_fp)
 	}
 }
 
-func (oscillator *oscillator) fillBlock_NoLoop(block []float32, pitchRatio_fp int64) bool {
+func (o *oscillator) fillBlock_NoLoop(block []float32, pitchRatio_fp int64) bool {
 
 	blockLength := len(block)
 
 	for t := 0; t < blockLength; t++ {
 
-		index := int32(oscillator.position_fp >> fracBits)
+		index := int32(o.position_fp >> fracBits)
 
-		if index >= oscillator.sampleEnd {
+		if index >= o.sampleEnd {
 			if t > 0 {
 				for i := t; i < blockLength; i++ {
 					block[i] = 0
@@ -104,45 +104,45 @@ func (oscillator *oscillator) fillBlock_NoLoop(block []float32, pitchRatio_fp in
 			}
 		}
 
-		x1 := int64(oscillator.data[index])
-		x2 := int64(oscillator.data[index+1])
-		a_fp := oscillator.position_fp & (fracUnit - 1)
+		x1 := int64(o.data[index])
+		x2 := int64(o.data[index+1])
+		a_fp := o.position_fp & (fracUnit - 1)
 		block[t] = fpToSample * float32((x1<<fracBits)+a_fp*(x2-x1))
 
-		oscillator.position_fp += pitchRatio_fp
+		o.position_fp += pitchRatio_fp
 	}
 
 	return true
 }
 
-func (oscillator *oscillator) fillBlock_Continuous(block []float32, pitchRatio_fp int64) bool {
+func (o *oscillator) fillBlock_Continuous(block []float32, pitchRatio_fp int64) bool {
 
 	blockLength := len(block)
 
-	endLoop_fp := int64(oscillator.endLoop) << fracBits
+	endLoop_fp := int64(o.endLoop) << fracBits
 
-	loopLength := int32(oscillator.endLoop - oscillator.startLoop)
+	loopLength := int32(o.endLoop - o.startLoop)
 	loopLength_fp := int64(loopLength) << fracBits
 
 	for t := 0; t < blockLength; t++ {
 
-		if oscillator.position_fp >= endLoop_fp {
-			oscillator.position_fp -= loopLength_fp
+		if o.position_fp >= endLoop_fp {
+			o.position_fp -= loopLength_fp
 		}
 
-		index1 := int32(oscillator.position_fp >> fracBits)
+		index1 := int32(o.position_fp >> fracBits)
 		index2 := index1 + 1
 
-		if index2 >= oscillator.endLoop {
+		if index2 >= o.endLoop {
 			index2 -= loopLength
 		}
 
-		x1 := int64(oscillator.data[index1])
-		x2 := int64(oscillator.data[index2])
-		a_fp := oscillator.position_fp & (fracUnit - 1)
+		x1 := int64(o.data[index1])
+		x2 := int64(o.data[index2])
+		a_fp := o.position_fp & (fracUnit - 1)
 		block[t] = fpToSample * float32((x1<<fracBits)+a_fp*(x2-x1))
 
-		oscillator.position_fp += pitchRatio_fp
+		o.position_fp += pitchRatio_fp
 	}
 
 	return true

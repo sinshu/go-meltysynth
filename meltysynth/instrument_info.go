@@ -12,7 +12,7 @@ type instrumentInfo struct {
 	zoneEndIndex   int32
 }
 
-func readInstrumentsFromChunk(reader io.Reader, size int32) ([]*instrumentInfo, error) {
+func readInstrumentsFromChunk(r io.Reader, size int32) ([]*instrumentInfo, error) {
 
 	var err error
 
@@ -28,13 +28,13 @@ func readInstrumentsFromChunk(reader io.Reader, size int32) ([]*instrumentInfo, 
 
 		instrument := new(instrumentInfo)
 
-		instrument.name, err = readFixedLengthString(reader, 20)
+		instrument.name, err = readFixedLengthString(r, 20)
 		if err != nil {
 			return nil, err
 		}
 
 		var zoneStartIndex uint16
-		err = binary.Read(reader, binary.LittleEndian, &zoneStartIndex)
+		err = binary.Read(r, binary.LittleEndian, &zoneStartIndex)
 		if err != nil {
 			return nil, err
 		}

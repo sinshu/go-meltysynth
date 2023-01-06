@@ -6,13 +6,13 @@ import (
 )
 
 // Since modulators will not be supported, we discard the data.
-func discardModulatorData(reader io.Reader, size int32) error {
+func discardModulatorData(r io.Reader, size int32) error {
 
 	if size%10 != 0 {
 		return errors.New("the modulator list is invalid")
 	}
 
-	n, err := reader.Read(make([]byte, size))
+	n, err := r.Read(make([]byte, size))
 	if err != nil {
 		return err
 	}
