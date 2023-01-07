@@ -1,105 +1,95 @@
 package main
 
 import (
-	"encoding/binary"
-	"math"
 	"os"
 	"time"
+
+	"github.com/faiface/beep"
+	"github.com/faiface/beep/speaker"
+	"github.com/faiface/pixel"
+	"github.com/faiface/pixel/pixelgl"
+	"golang.org/x/image/colornames"
 
 	"github.com/sinshu/go-meltysynth/meltysynth"
 )
 
-func main() {
-
-	simpleChord()
-	flourish()
+type audioStream struct {
+	seq      *meltysynth.MidiFileSequencer
+	leftBuf  []float32
+	rightBuf []float32
 }
 
-func simpleChord() {
+func NewAudioStream(seq *meltysynth.MidiFileSequencer) *audioStream {
+	result := new(audioStream)
+	result.seq = seq
+	return result
+}
 
-	// Load the SoundFont.
+func (s *audioStream) Stream(samples [][2]float64) (n int, ok bool) {
+	sampleCount := len(samples)
+
+	if s.leftBuf == nil {
+		s.leftBuf = make([]float32, sampleCount)
+		s.rightBuf = make([]float32, sampleCount)
+	} else if len(s.leftBuf) < sampleCount {
+		s.leftBuf = make([]float32, sampleCount)
+		s.rightBuf = make([]float32, sampleCount)
+	}
+
+	s.seq.Render(s.leftBuf[0:sampleCount], s.rightBuf[0:sampleCount])
+
+	for i := range samples {
+		samples[i][0] = float64(s.leftBuf[i])
+		samples[i][1] = float64(s.rightBuf[i])
+	}
+
+	return sampleCount, true
+}
+
+func (s *audioStream) Err() error {
+	return nil
+}
+
+func run() {
+	var sampleRate int32 = 44100
+
 	sf2, _ := os.Open("TimGM6mb.sf2")
 	soundFont, _ := meltysynth.NewSoundFont(sf2)
 	sf2.Close()
 
-	// Create the synthesizer.
-	settings := meltysynth.NewSynthesizerSettings(44100)
+	settings := meltysynth.NewSynthesizerSettings(sampleRate)
 	synthesizer, _ := meltysynth.NewSynthesizer(soundFont, settings)
 
-	// Play some notes (middle C, E, G).
-	synthesizer.NoteOn(0, 60, 100)
-	synthesizer.NoteOn(0, 64, 100)
-	synthesizer.NoteOn(0, 67, 100)
-
-	// The output buffer (3 seconds).
-	length := 3 * settings.SampleRate
-	left := make([]float32, length)
-	right := make([]float32, length)
-
-	// Render the waveform.
-	synthesizer.Render(left, right)
-
-	writePcmInterleavedInt16(left, right, "simpleChord.pcm")
-}
-
-func flourish() {
-
-	// Load the SoundFont.
-	sf2, _ := os.Open("TimGM6mb.sf2")
-	soundFont, _ := meltysynth.NewSoundFont(sf2)
-	sf2.Close()
-
-	// Create the synthesizer.
-	settings := meltysynth.NewSynthesizerSettings(44100)
-	synthesizer, _ := meltysynth.NewSynthesizer(soundFont, settings)
-
-	// Load the MIDI file.
 	mid, _ := os.Open("C:\\Windows\\Media\\flourish.mid")
 	midiFile, _ := meltysynth.NewMidiFile(mid)
 	mid.Close()
 
-	// Create the MIDI sequencer.
 	sequencer := meltysynth.NewMidiFileSequencer(synthesizer)
 	sequencer.Play(midiFile, true)
 
-	// The output buffer.
-	length := int(float64(settings.SampleRate) * float64(midiFile.GetLength()) / float64(time.Second))
-	left := make([]float32, length)
-	right := make([]float32, length)
+	cfg := pixelgl.WindowConfig{
+		Title:  "MIDI music playback!",
+		Bounds: pixel.R(0, 0, 1024, 768),
+		VSync:  true,
+	}
+	win, err := pixelgl.NewWindow(cfg)
+	if err != nil {
+		panic(err)
+	}
 
-	// Render the waveform.
-	sequencer.Render(left, right)
+	win.Clear(colornames.Skyblue)
 
-	writePcmInterleavedInt16(left, right, "flourish.pcm")
+	sr := beep.SampleRate(sampleRate)
+	speaker.Init(sr, sr.N(time.Second/10))
+	speaker.Play(NewAudioStream(sequencer))
+
+	for !win.Closed() {
+		win.Update()
+	}
+
+	speaker.Close()
 }
 
-func writePcmInterleavedInt16(left []float32, right []float32, path string) {
-
-	length := len(left)
-
-	max := 0.0
-
-	for i := 0; i < length; i++ {
-		absLeft := math.Abs(float64(left[i]))
-		absRight := math.Abs(float64(right[i]))
-		if max < absLeft {
-			max = absLeft
-		}
-		if max < absRight {
-			max = absRight
-		}
-	}
-
-	a := 32768 * float32(0.99/max)
-
-	data := make([]int16, 2*length)
-
-	for i := 0; i < length; i++ {
-		data[2*i] = int16(a * left[i])
-		data[2*i+1] = int16(a * right[i])
-	}
-
-	pcm, _ := os.Create(path)
-	binary.Write(pcm, binary.LittleEndian, data)
-	pcm.Close()
+func main() {
+	pixelgl.Run(run)
 }
