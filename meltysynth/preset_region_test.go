@@ -1,14 +1,10 @@
-package meltysynth_test
+package meltysynth
 
 import (
-	"os"
 	"testing"
-
-	"github.com/sinshu/go-meltysynth/meltysynth"
 )
 
 func TestTimGM6mb_PresetRegion(t *testing.T) {
-
 	var reference = make([][][]float64, 136, 136)
 
 	//============================================================
@@ -1111,8 +1107,7 @@ func TestTimGM6mb_PresetRegion(t *testing.T) {
 	// Strings (Tremelo)1
 	reference[135][1] = []float64{0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 127, 0, 127, 0, 0, 0, 0}
 
-	file, _ := os.Open("TimGM6mb.sf2")
-	soundFont, _ := meltysynth.NewSoundFont(file)
+	soundFont := loadGM(t)
 
 	presetCount := len(soundFont.Presets)
 	for pre := 0; pre < presetCount; pre++ {
@@ -1127,7 +1122,6 @@ func TestTimGM6mb_PresetRegion(t *testing.T) {
 }
 
 func TestMuseScore_PresetRegion(t *testing.T) {
-
 	var reference = make([][][]float64, 270, 270)
 
 	//============================================================
@@ -7374,8 +7368,7 @@ func TestMuseScore_PresetRegion(t *testing.T) {
 	// Helicopter
 	reference[269][0] = []float64{0, 0, 0, 1, 0, 0, 0, 0, 7, 3, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 3.5004, 0, 0, 0, 127, 0, 127, 0, 0, 0, 0}
 
-	file, _ := os.Open("GeneralUser GS MuseScore v1.442.sf2")
-	soundFont, _ := meltysynth.NewSoundFont(file)
+	soundFont := loadGS(t)
 
 	presetCount := len(soundFont.Presets)
 	for pre := 0; pre < presetCount; pre++ {

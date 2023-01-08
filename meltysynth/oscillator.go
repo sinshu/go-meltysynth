@@ -37,7 +37,6 @@ func newOscillator(s *Synthesizer) *oscillator {
 }
 
 func (o *oscillator) start(data []int16, loopMode int32, sampleRate int32, start int32, end int32, startLoop int32, endLoop int32, rootKey int32, coarseTune int32, fineTune int32, scaleTuning int32) {
-
 	o.data = data
 	o.loopMode = loopMode
 	o.sampleRate = sampleRate
@@ -61,21 +60,18 @@ func (o *oscillator) start(data []int16, loopMode int32, sampleRate int32, start
 }
 
 func (o *oscillator) release() {
-
 	if o.loopMode == loop_LoopUntilNoteOff {
 		o.looping = false
 	}
 }
 
 func (o *oscillator) process(block []float32, pitch float32) bool {
-
 	pitchChange := o.pitchChangeScale*(pitch-float32(o.rootKey)) + o.tune
 	pitchRatio := float64(o.sampleRateRatio) * math.Pow(float64(2), float64(pitchChange)/float64(12))
 	return o.fillBlock(block, pitchRatio)
 }
 
 func (o *oscillator) fillBlock(block []float32, pitchRatio float64) bool {
-
 	pitchRatio_fp := int64(float64(fracUnit) * pitchRatio)
 
 	if o.looping {
@@ -86,22 +82,18 @@ func (o *oscillator) fillBlock(block []float32, pitchRatio float64) bool {
 }
 
 func (o *oscillator) fillBlock_NoLoop(block []float32, pitchRatio_fp int64) bool {
-
 	blockLength := len(block)
 
 	for t := 0; t < blockLength; t++ {
-
 		index := int32(o.position_fp >> fracBits)
-
 		if index >= o.sampleEnd {
 			if t > 0 {
 				for i := t; i < blockLength; i++ {
 					block[i] = 0
 				}
 				return true
-			} else {
-				return false
 			}
+			return false
 		}
 
 		x1 := int64(o.data[index])
@@ -116,7 +108,6 @@ func (o *oscillator) fillBlock_NoLoop(block []float32, pitchRatio_fp int64) bool
 }
 
 func (o *oscillator) fillBlock_Continuous(block []float32, pitchRatio_fp int64) bool {
-
 	blockLength := len(block)
 
 	endLoop_fp := int64(o.endLoop) << fracBits
@@ -125,7 +116,6 @@ func (o *oscillator) fillBlock_Continuous(block []float32, pitchRatio_fp int64) 
 	loopLength_fp := int64(loopLength) << fracBits
 
 	for t := 0; t < blockLength; t++ {
-
 		if o.position_fp >= endLoop_fp {
 			o.position_fp -= loopLength_fp
 		}

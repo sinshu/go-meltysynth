@@ -6,7 +6,6 @@ type regionPair struct {
 }
 
 func newRegionPair(preset *PresetRegion, inst *InstrumentRegion) regionPair {
-
 	var result regionPair
 
 	result.preset = preset

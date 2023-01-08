@@ -44,14 +44,12 @@ func common2b(status byte, data1 byte) message {
 }
 
 func common3b(status byte, data1 byte, data2 byte) message {
-
 	channel := status & 0x0F
 	command := status & 0xF0
 	return newMessage(channel, command, data1, data2)
 }
 
 func tempoChange(tempo int32) message {
-
 	command := byte(tempo >> 16)
 	data1 := byte(tempo >> 8)
 	data2 := byte(tempo)
@@ -78,7 +76,6 @@ func (message message) getTempo() float64 {
 }
 
 func NewMidiFile(r io.Reader) (*MidiFile, error) {
-
 	var err error
 
 	chunkType, err := readFourCC(r)
@@ -140,7 +137,6 @@ func NewMidiFile(r io.Reader) (*MidiFile, error) {
 }
 
 func readTrack(r io.Reader) ([]message, []int32, error) {
-
 	var n int
 	var err error
 
@@ -157,8 +153,8 @@ func readTrack(r io.Reader) ([]message, []int32, error) {
 	messages := make([]message, 0, 300)
 	ticks := make([]int32, 0, 300)
 
-	var tick int32 = 0
-	var lastStatus byte = 0
+	var tick int32
+	var lastStatus byte
 
 	for {
 		delta, err := readIntVariableLength(r)
@@ -271,7 +267,6 @@ func readTrack(r io.Reader) ([]message, []int32, error) {
 }
 
 func mergeTracks(messageLists [][]message, tickLists [][]int32, resolution int16) ([]message, []time.Duration) {
-
 	mergedMessages := make([]message, 0, 1000)
 	mergedTimes := make([]time.Duration, 0, 1000)
 
@@ -280,7 +275,7 @@ func mergeTracks(messageLists [][]message, tickLists [][]int32, resolution int16
 	currentTick := int32(0)
 	currentTime := time.Duration(0)
 
-	var tempo = float64(120)
+	tempo := float64(120)
 
 	for {
 		minTick := int32(math.MaxInt32)
@@ -322,7 +317,6 @@ func mergeTracks(messageLists [][]message, tickLists [][]int32, resolution int16
 }
 
 func readTempo(r io.Reader) (int32, error) {
-
 	size, err := readIntVariableLength(r)
 	if err != nil {
 		return 0, err
@@ -347,7 +341,6 @@ func readTempo(r io.Reader) (int32, error) {
 }
 
 func discardData(r io.Reader) error {
-
 	size, err := readIntVariableLength(r)
 	if err != nil {
 		return err

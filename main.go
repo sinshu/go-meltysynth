@@ -2,6 +2,10 @@ package main
 
 import (
 	"encoding/binary"
+	"flag"
+	"fmt"
+	"io"
+	"log"
 	"math"
 	"os"
 	"time"
@@ -10,21 +14,60 @@ import (
 )
 
 func main() {
-
-	simpleChord()
-	flourish()
+	err := run()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
-func simpleChord() {
+func run() error {
+	sf2Path := flag.String("sf2", "", "Sound font file location")
+	outPath := flag.String("o", "out.pcm", "file to write pcm file to")
+	midiPath := flag.String("midi", "", `midi file to synth, or "chord" for example`)
+	flag.Parse()
 
-	// Load the SoundFont.
-	sf2, _ := os.Open("TimGM6mb.sf2")
-	soundFont, _ := meltysynth.NewSoundFont(sf2)
+	if len(*sf2Path) == 0 {
+		flag.PrintDefaults()
+		return fmt.Errorf("missing sf2 path")
+	}
+	if len(*outPath) == 0 {
+		flag.PrintDefaults()
+		return fmt.Errorf("missing output path")
+	}
+	if len(*midiPath) == 0 {
+		flag.PrintDefaults()
+		return fmt.Errorf("missing midi path")
+	}
+
+	sf2, err := os.Open(*sf2Path)
+	if err != nil {
+		return err
+	}
+	soundFont, err := meltysynth.NewSoundFont(sf2)
 	sf2.Close()
+	if err != nil {
+		return err
+	}
 
+	switch *midiPath {
+	default:
+		err = midi(soundFont, *midiPath, *outPath)
+	case "chord":
+		err = simpleChord(soundFont, *outPath)
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func simpleChord(soundFont *meltysynth.SoundFont, outputFile string) error {
 	// Create the synthesizer.
 	settings := meltysynth.NewSynthesizerSettings(44100)
-	synthesizer, _ := meltysynth.NewSynthesizer(soundFont, settings)
+	synthesizer, err := meltysynth.NewSynthesizer(soundFont, settings)
+	if err != nil {
+		return err
+	}
 
 	// Play some notes (middle C, E, G).
 	synthesizer.NoteOn(0, 60, 100)
@@ -39,24 +82,27 @@ func simpleChord() {
 	// Render the waveform.
 	synthesizer.Render(left, right)
 
-	writePcmInterleavedInt16(left, right, "simpleChord.pcm")
+	return writeFile(left, right, outputFile)
 }
 
-func flourish() {
-
-	// Load the SoundFont.
-	sf2, _ := os.Open("TimGM6mb.sf2")
-	soundFont, _ := meltysynth.NewSoundFont(sf2)
-	sf2.Close()
-
+func midi(soundFont *meltysynth.SoundFont, midiFilePath string, outputFile string) error {
 	// Create the synthesizer.
 	settings := meltysynth.NewSynthesizerSettings(44100)
-	synthesizer, _ := meltysynth.NewSynthesizer(soundFont, settings)
+	synthesizer, err := meltysynth.NewSynthesizer(soundFont, settings)
+	if err != nil {
+		return err
+	}
 
 	// Load the MIDI file.
-	mid, _ := os.Open("C:\\Windows\\Media\\flourish.mid")
-	midiFile, _ := meltysynth.NewMidiFile(mid)
+	mid, err := os.Open(midiFilePath)
+	if err != nil {
+		return err
+	}
+	midiFile, err := meltysynth.NewMidiFile(mid)
 	mid.Close()
+	if err != nil {
+		return err
+	}
 
 	// Create the MIDI sequencer.
 	sequencer := meltysynth.NewMidiFileSequencer(synthesizer)
@@ -70,14 +116,22 @@ func flourish() {
 	// Render the waveform.
 	sequencer.Render(left, right)
 
-	writePcmInterleavedInt16(left, right, "flourish.pcm")
+	return writeFile(left, right, outputFile)
 }
 
-func writePcmInterleavedInt16(left []float32, right []float32, path string) {
+func writeFile(left []float32, right []float32, filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
 
+	return writePCMInterleavedInt16(left, right, f)
+}
+
+func writePCMInterleavedInt16(left []float32, right []float32, pcm io.Writer) error {
 	length := len(left)
-
-	max := 0.0
+	var max float64
 
 	for i := 0; i < length; i++ {
 		absLeft := math.Abs(float64(left[i]))
@@ -99,7 +153,5 @@ func writePcmInterleavedInt16(left []float32, right []float32, path string) {
 		data[2*i+1] = int16(a * right[i])
 	}
 
-	pcm, _ := os.Create(path)
-	binary.Write(pcm, binary.LittleEndian, data)
-	pcm.Close()
+	return binary.Write(pcm, binary.LittleEndian, data)
 }

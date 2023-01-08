@@ -11,7 +11,6 @@ type SoundFontVersion struct {
 }
 
 func newSoundFontVersion(r io.Reader) (SoundFontVersion, error) {
-
 	var result SoundFontVersion
 	var err error
 

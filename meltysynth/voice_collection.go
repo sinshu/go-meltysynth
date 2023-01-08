@@ -9,23 +9,19 @@ type voiceCollection struct {
 }
 
 func newVoiceCollection(s *Synthesizer, maxActiveVoiceCount int32) *voiceCollection {
-
-	result := new(voiceCollection)
-
-	result.synthesizer = s
-
-	result.voices = make([]*voice, maxActiveVoiceCount)
+	result := &voiceCollection{
+		synthesizer: s,
+		voices:      make([]*voice, maxActiveVoiceCount),
+	}
 	for i := 0; i < len(result.voices); i++ {
 		result.voices[i] = newVoice(s)
 	}
-
 	result.activeVoiceCount = 0
 
 	return result
 }
 
 func (vc *voiceCollection) requestNew(region *InstrumentRegion, channel int32) *voice {
-
 	// If an exclusive class is assigned to the region, find a voice with the same class.
 	// If found, reuse it to avoid playing multiple voices with the same class at a time.
 	exclusiveClass := region.GetExclusiveClass()
@@ -67,8 +63,7 @@ func (vc *voiceCollection) requestNew(region *InstrumentRegion, channel int32) *
 }
 
 func (vc *voiceCollection) process() {
-
-	var i int32 = 0
+	var i int32
 
 	for {
 		if i == vc.activeVoiceCount {

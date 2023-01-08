@@ -12,7 +12,6 @@ type generator struct {
 }
 
 func readGeneratorsFromChunk(r io.Reader, size int32) ([]generator, error) {
-
 	var n int
 	var err error
 
@@ -21,11 +20,9 @@ func readGeneratorsFromChunk(r io.Reader, size int32) ([]generator, error) {
 	}
 
 	count := size/4 - 1
-
 	generators := make([]generator, count)
 
 	for i := int32(0); i < count; i++ {
-
 		var gen generator
 
 		var generatorType uint16

@@ -13,11 +13,7 @@ type soundFontParameters struct {
 }
 
 func newSoundFontParameters(r io.Reader) (*soundFontParameters, error) {
-
-	var err error
-
-	var chunkId string
-	chunkId, err = readFourCC(r)
+	chunkId, err := readFourCC(r)
 	if err != nil {
 		return nil, err
 	}
@@ -25,15 +21,13 @@ func newSoundFontParameters(r io.Reader) (*soundFontParameters, error) {
 		return nil, errors.New("the list chunk was not found")
 	}
 
-	var pos int32 = 0
-	var end int32
+	var pos, end int32
 	err = binary.Read(r, binary.LittleEndian, &end)
 	if err != nil {
 		return nil, err
 	}
 
-	var listType string
-	listType, err = readFourCC(r)
+	listType, err := readFourCC(r)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +45,6 @@ func newSoundFontParameters(r io.Reader) (*soundFontParameters, error) {
 	var sampleHeaders []*SampleHeader
 
 	for pos < end {
-
 		var id string
 		id, err = readFourCC(r)
 		if err != nil {
@@ -67,7 +60,6 @@ func newSoundFontParameters(r io.Reader) (*soundFontParameters, error) {
 		pos += 4
 
 		switch id {
-
 		case "phdr":
 			presetInfos, err = readPresetsFromChunk(r, size)
 		case "pbag":

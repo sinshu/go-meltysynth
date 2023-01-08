@@ -71,27 +71,19 @@ type voice struct {
 }
 
 func newVoice(s *Synthesizer) *voice {
-
-	result := new(voice)
-
-	result.synthesizer = s
-
-	result.volEnv = newVolumeEnvelope(s)
-	result.modEnv = newModulationEnvelope(s)
-
-	result.vibLfo = newLfo(s)
-	result.modLfo = newLfo(s)
-
-	result.oscillator = newOscillator(s)
-	result.filter = newBiQuadFilter(s)
-
-	result.block = make([]float32, s.BlockSize)
-
-	return result
+	return &voice{
+		synthesizer: s,
+		volEnv:      newVolumeEnvelope(s),
+		modEnv:      newModulationEnvelope(s),
+		vibLfo:      newLfo(s),
+		modLfo:      newLfo(s),
+		oscillator:  newOscillator(s),
+		filter:      newBiQuadFilter(s),
+		block:       make([]float32, s.BlockSize),
+	}
 }
 
 func (v *voice) start(region regionPair, channel int32, key int32, velocity int32) {
-
 	v.exclusiveClass = region.GetExclusiveClass()
 	v.channel = channel
 	v.key = key
@@ -151,7 +143,6 @@ func (v *voice) kill() {
 }
 
 func (v *voice) process() bool {
-
 	if v.noteGain < nonAudible {
 		return false
 	}
@@ -212,13 +203,14 @@ func (v *voice) process() bool {
 	}
 
 	angle := float32(math.Pi/200) * (channelInfo.getPan() + v.instrumentPan + 50)
-	if angle <= 0 {
+	switch {
+	case angle <= 0:
 		v.currentMixGainLeft = mixGain
 		v.currentMixGainRight = 0
-	} else if angle >= halfPi {
+	case angle >= halfPi:
 		v.currentMixGainLeft = 0
 		v.currentMixGainRight = mixGain
-	} else {
+	default:
 		v.currentMixGainLeft = mixGain * float32(math.Cos(float64(angle)))
 		v.currentMixGainRight = mixGain * float32(math.Sin(float64(angle)))
 	}
@@ -239,7 +231,6 @@ func (v *voice) process() bool {
 }
 
 func (v *voice) releaseIfNecessary(channelInfo *channel) {
-
 	if v.voiceLength < v.synthesizer.minimumVoiceDuration {
 		return
 	}
@@ -254,10 +245,8 @@ func (v *voice) releaseIfNecessary(channelInfo *channel) {
 }
 
 func (v *voice) getPriority() float32 {
-
 	if v.noteGain < nonAudible {
 		return 0
-	} else {
-		return v.volEnv.priority
 	}
+	return v.volEnv.priority
 }

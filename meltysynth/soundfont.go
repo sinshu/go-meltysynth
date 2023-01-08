@@ -3,6 +3,7 @@ package meltysynth
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 )
 
@@ -16,11 +17,7 @@ type SoundFont struct {
 }
 
 func NewSoundFont(r io.Reader) (*SoundFont, error) {
-
-	var err error
-
-	var chunkId string
-	chunkId, err = readFourCC(r)
+	chunkId, err := readFourCC(r)
 	if err != nil {
 		return nil, err
 	}
@@ -40,10 +37,10 @@ func NewSoundFont(r io.Reader) (*SoundFont, error) {
 		return nil, err
 	}
 	if formType != "sfbk" {
-		return nil, errors.New("the type of the riff chunk must be 'sfbk', but was '" + formType + "'")
+		return nil, fmt.Errorf("the type of the riff chunk must be 'sfbk', but was %q'", formType)
 	}
 
-	result := new(SoundFont)
+	result := &SoundFont{}
 
 	result.Info, err = newSoundFontInfo(r)
 	if err != nil {

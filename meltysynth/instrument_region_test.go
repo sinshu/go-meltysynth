@@ -1,14 +1,10 @@
-package meltysynth_test
+package meltysynth
 
 import (
-	"os"
 	"testing"
-
-	"github.com/sinshu/go-meltysynth/meltysynth"
 )
 
 func TestTimGM6mb_InstrumentRegion(t *testing.T) {
-
 	var reference = make([][][]float64, 210, 210)
 
 	//============================================================
@@ -5187,9 +5183,7 @@ func TestTimGM6mb_InstrumentRegion(t *testing.T) {
 	// ensstringsc7
 	reference[209][8] = []float64{2712865, 2727420, 2720001, 2727420, 0, 0, 0, 0, 0, 0, 0, 19913, 0, 0, 0, -2, 0, 42.4, 7.8, 0.24699, 7.8113, 0.0099978, 8.176, 0.00097656, 0.00097656, 0.00097656, 0.00097656, 0, 39.993, 0, 0, 0.00097656, 0.061997, 0.00097656, 1.9196, 8.1, 0.94007, 0, 0, 96, 120, 0, 127, 5.9, 0, -5, 1, 100, 0, 96}
 
-	file, _ := os.Open("TimGM6mb.sf2")
-	soundFont, _ := meltysynth.NewSoundFont(file)
-
+	soundFont := loadGM(t)
 	instrumentCount := len(soundFont.Instruments)
 	for inst := 0; inst < instrumentCount; inst++ {
 		instrument := soundFont.Instruments[inst]
@@ -5203,7 +5197,6 @@ func TestTimGM6mb_InstrumentRegion(t *testing.T) {
 }
 
 func TestMuseScore_InstrumentRegion(t *testing.T) {
-
 	var reference = make([][][]float64, 310, 310)
 
 	//============================================================
@@ -10580,8 +10573,7 @@ func TestMuseScore_InstrumentRegion(t *testing.T) {
 	// Helicopter
 	reference[309][0] = []float64{15500156, 15513066, 15500159, 15513058, 0, 0, 0, 0, 0, -8, 94, 2593.3, 0, 562, 3037, 0.1, 0, 0, 0, 0.65406, 0.08404, 0.00097656, 0.08404, 0.00097656, 2.1772, 0.00097656, 0.00097656, 0, 32.767, 0, 0, 0.00097656, 4.9474, 0.00097656, 0.00097656, 0, 1.5583, 0, 0, 0, 108, 0, 127, 4.5, -13, 2, 1, 50, 0, 60}
 
-	file, _ := os.Open("GeneralUser GS MuseScore v1.442.sf2")
-	soundFont, _ := meltysynth.NewSoundFont(file)
+	soundFont := loadGS(t)
 
 	instrumentCount := len(soundFont.Instruments)
 	for inst := 0; inst < instrumentCount; inst++ {

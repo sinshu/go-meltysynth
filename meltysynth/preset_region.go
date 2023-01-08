@@ -11,7 +11,6 @@ type PresetRegion struct {
 }
 
 func createPresetRegion(preset *Preset, global *zone, local *zone, instruments []*Instrument) (*PresetRegion, error) {
-
 	result := new(PresetRegion)
 
 	result.gs[gen_KeyRange] = 0x7F00

@@ -25,7 +25,6 @@ type channel struct {
 }
 
 func newChannel(s *Synthesizer, isPercussionChannel bool) *channel {
-
 	result := new(channel)
 
 	result.synthesizer = s
@@ -37,7 +36,6 @@ func newChannel(s *Synthesizer, isPercussionChannel bool) *channel {
 }
 
 func (ch *channel) reset() {
-
 	if ch.isPercussionChannel {
 		ch.bankNumber = 128
 	} else {
@@ -64,7 +62,6 @@ func (ch *channel) reset() {
 }
 
 func (ch *channel) resetAllControllers() {
-
 	ch.modulation = 0
 	ch.expression = 127 << 7
 	ch.holdPedal = false
@@ -75,7 +72,6 @@ func (ch *channel) resetAllControllers() {
 }
 
 func (ch *channel) setBank(value int32) {
-
 	ch.bankNumber = value
 
 	if ch.isPercussionChannel {

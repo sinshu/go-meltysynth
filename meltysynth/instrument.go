@@ -10,11 +10,9 @@ type Instrument struct {
 }
 
 func createInstrument(info *instrumentInfo, zones []*zone, samples []*SampleHeader) (*Instrument, error) {
-
 	var err error
 
 	result := new(Instrument)
-
 	result.Name = info.name
 
 	zoneCount := info.zoneEndIndex - info.zoneStartIndex + 1

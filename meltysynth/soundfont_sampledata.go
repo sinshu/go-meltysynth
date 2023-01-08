@@ -12,12 +12,8 @@ type soundFontSampleData struct {
 }
 
 func newSoundFontSampleData(r io.Reader) (*soundFontSampleData, error) {
-
 	var n int
-	var err error
-
-	var chunkId string
-	chunkId, err = readFourCC(r)
+	chunkId, err := readFourCC(r)
 	if err != nil {
 		return nil, err
 	}
@@ -25,15 +21,14 @@ func newSoundFontSampleData(r io.Reader) (*soundFontSampleData, error) {
 		return nil, errors.New("the list chunk was not found")
 	}
 
-	var pos int32 = 0
+	var pos int32
 	var end int32
 	err = binary.Read(r, binary.LittleEndian, &end)
 	if err != nil {
 		return nil, err
 	}
 
-	var listType string
-	listType, err = readFourCC(r)
+	listType, err := readFourCC(r)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +40,6 @@ func newSoundFontSampleData(r io.Reader) (*soundFontSampleData, error) {
 	result := new(soundFontSampleData)
 
 	for pos < end {
-
 		var id string
 		id, err = readFourCC(r)
 		if err != nil {
@@ -61,23 +55,19 @@ func newSoundFontSampleData(r io.Reader) (*soundFontSampleData, error) {
 		pos += 4
 
 		switch id {
-
 		case "smpl":
 			result.bitsPerSample = 16
 			result.samples = make([]int16, size/2)
 			err = binary.Read(r, binary.LittleEndian, result.samples)
-
 		case "sm24":
 			// 24 bit audio is not supported.
 			n, err = r.Read(make([]byte, size))
 			if n != int(size) {
 				return nil, errors.New("failed to read the 24 bit audio data")
 			}
-
 		default:
 			return nil, errors.New("the info list contains an unknown id '" + id + "'")
 		}
-
 		if err != nil {
 			return nil, err
 		}

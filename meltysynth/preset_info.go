@@ -18,7 +18,6 @@ type presetInfo struct {
 }
 
 func readPresetsFromChunk(r io.Reader, size int32) ([]*presetInfo, error) {
-
 	var err error
 
 	if size%38 != 0 {
@@ -26,11 +25,9 @@ func readPresetsFromChunk(r io.Reader, size int32) ([]*presetInfo, error) {
 	}
 
 	count := size / 38
-
 	presets := make([]*presetInfo, count)
 
 	for i := int32(0); i < count; i++ {
-
 		preset := new(presetInfo)
 
 		preset.name, err = readFixedLengthString(r, 20)

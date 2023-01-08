@@ -4,9 +4,10 @@ import (
 	"math"
 )
 
-const halfPi float32 = math.Pi
-
-const nonAudible float32 = 1.0e-3
+const (
+	halfPi     float32 = math.Pi // TODO: Shouls this be math.Pi / 2?
+	nonAudible float32 = 1.0e-3
+)
 
 var logNonAudible float32 = float32(math.Log(1.0e-3))
 
@@ -43,11 +44,12 @@ func calcExpCutoff(x float64) float64 {
 }
 
 func calcClamp(value float32, min float32, max float32) float32 {
-	if value < min {
+	switch {
+	case value < min:
 		return min
-	} else if value > max {
+	case value > max:
 		return max
-	} else {
+	default:
 		return value
 	}
 }
