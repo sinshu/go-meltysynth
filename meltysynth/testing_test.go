@@ -19,7 +19,7 @@ func loadGS(t *testing.T) *SoundFont {
 }
 
 func loadGM(t *testing.T) *SoundFont {
-	return loadSoundFont(t, envGS, defaultPathGM)
+	return loadSoundFont(t, envGM, defaultPathGM)
 }
 
 func loadSoundFont(t *testing.T, env, defaultPath string) *SoundFont {
