@@ -36,7 +36,6 @@ type Synthesizer struct {
 }
 
 func NewSynthesizer(sf *SoundFont, settings *SynthesizerSettings) (*Synthesizer, error) {
-
 	err := settings.validate()
 	if err != nil {
 		return nil, err
@@ -92,7 +91,6 @@ func NewSynthesizer(sf *SoundFont, settings *SynthesizerSettings) (*Synthesizer,
 }
 
 func (s *Synthesizer) ProcessMidiMessage(channel int32, command int32, data1 int32, data2 int32) {
-
 	if !(0 <= channel && int(channel) < len(s.channels)) {
 		return
 	}
@@ -175,7 +173,6 @@ func (s *Synthesizer) ProcessMidiMessage(channel int32, command int32, data1 int
 }
 
 func (s *Synthesizer) NoteOff(channel int32, key int32) {
-
 	if !(0 <= channel && int(channel) < len(s.channels)) {
 		return
 	}
@@ -189,7 +186,6 @@ func (s *Synthesizer) NoteOff(channel int32, key int32) {
 }
 
 func (s *Synthesizer) NoteOn(channel int32, key int32, velocity int32) {
-
 	if velocity == 0 {
 		s.NoteOff(channel, key)
 		return
@@ -200,7 +196,6 @@ func (s *Synthesizer) NoteOn(channel int32, key int32, velocity int32) {
 	}
 
 	channelInfo := s.channels[channel]
-
 	presetId := (channelInfo.bankNumber << 16) | channelInfo.patchNumber
 
 	preset, found := s.presetLookup[presetId]
@@ -243,7 +238,6 @@ func (s *Synthesizer) NoteOn(channel int32, key int32, velocity int32) {
 }
 
 func (s *Synthesizer) NoteOffAll(immediate bool) {
-
 	if immediate {
 		s.voices.clear()
 	} else {
@@ -254,24 +248,22 @@ func (s *Synthesizer) NoteOffAll(immediate bool) {
 }
 
 func (s *Synthesizer) NoteOffAllChannel(channel int32, immediate bool) {
-
 	if immediate {
 		for i := 0; i < int(s.voices.activeVoiceCount); i++ {
 			if s.voices.voices[i].channel == channel {
 				s.voices.voices[i].kill()
 			}
 		}
-	} else {
-		for i := 0; i < int(s.voices.activeVoiceCount); i++ {
-			if s.voices.voices[i].channel == channel {
-				s.voices.voices[i].end()
-			}
+		return
+	}
+	for i := 0; i < int(s.voices.activeVoiceCount); i++ {
+		if s.voices.voices[i].channel == channel {
+			s.voices.voices[i].end()
 		}
 	}
 }
 
 func (s *Synthesizer) ResetAllControllers() {
-
 	channelCount := len(s.channels)
 	for i := 0; i < channelCount; i++ {
 		s.channels[i].resetAllControllers()
@@ -279,7 +271,6 @@ func (s *Synthesizer) ResetAllControllers() {
 }
 
 func (s *Synthesizer) ResetAllControllersChannel(channel int32) {
-
 	if !(0 <= channel && int(channel) < len(s.channels)) {
 		return
 	}
@@ -288,7 +279,6 @@ func (s *Synthesizer) ResetAllControllersChannel(channel int32) {
 }
 
 func (s *Synthesizer) Reset() {
-
 	s.voices.clear()
 
 	channelCount := len(s.channels)
@@ -300,8 +290,7 @@ func (s *Synthesizer) Reset() {
 }
 
 func (s *Synthesizer) Render(left []float32, right []float32) {
-
-	wrote := int32(0)
+	var wrote int32
 	length := int32(len(left))
 	for wrote < length {
 		if s.blockRead == s.BlockSize {
@@ -324,7 +313,6 @@ func (s *Synthesizer) Render(left []float32, right []float32) {
 }
 
 func (s *Synthesizer) renderBlock() {
-
 	s.voices.process()
 
 	for i := 0; i < int(s.BlockSize); i++ {
@@ -344,7 +332,6 @@ func (s *Synthesizer) renderBlock() {
 }
 
 func (s *Synthesizer) writeBlock(previousGain float32, currentGain float32, source []float32, destination []float32) {
-
 	if math.Max(float64(previousGain), float64(currentGain)) < float64(nonAudible) {
 		return
 	}

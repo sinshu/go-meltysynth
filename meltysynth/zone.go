@@ -9,18 +9,15 @@ type zone struct {
 }
 
 func createZones(infos []*zoneInfo, generators []generator) ([]*zone, error) {
-
 	if len(infos) <= 1 {
 		return nil, errors.New("no valid zone was found")
 	}
 
 	// The last one is the terminator.
 	count := len(infos) - 1
-
 	zones := make([]*zone, count)
 
 	for i := 0; i < count; i++ {
-
 		info := infos[i]
 
 		zo := new(zone)
@@ -36,7 +33,6 @@ func createZones(infos []*zoneInfo, generators []generator) ([]*zone, error) {
 }
 
 func createEmptyZone() *zone {
-
 	result := new(zone)
 	result.generators = make([]generator, 0)
 	return result

@@ -11,7 +11,6 @@ type InstrumentRegion struct {
 }
 
 func createInstrumentRegion(inst *Instrument, global *zone, local *zone, samples []*SampleHeader) (*InstrumentRegion, error) {
-
 	result := new(InstrumentRegion)
 
 	result.gs[gen_InitialFilterCutoffFrequency] = 13500
@@ -52,7 +51,6 @@ func createInstrumentRegion(inst *Instrument, global *zone, local *zone, samples
 }
 
 func createInstrumentRegions(inst *Instrument, zones []*zone, samples []*SampleHeader) ([]*InstrumentRegion, error) {
-
 	var err error
 
 	// Is the first one the global zone?
@@ -71,9 +69,7 @@ func createInstrumentRegions(inst *Instrument, zones []*zone, samples []*SampleH
 			}
 		}
 		return regions, nil
-
 	} else {
-
 		// No global zone.
 		count := len(zones)
 		regions := make([]*InstrumentRegion, count)
@@ -88,7 +84,6 @@ func createInstrumentRegions(inst *Instrument, zones []*zone, samples []*SampleH
 }
 
 func (region *InstrumentRegion) setParameter(param generator) {
-
 	index := param.generatorType
 
 	// Unknown generators should be ignored.

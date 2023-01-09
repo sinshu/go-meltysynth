@@ -26,7 +26,6 @@ func newModulationEnvelope(s *Synthesizer) *modulationEnvelope {
 }
 
 func (env *modulationEnvelope) start(delay float32, attack float32, hold float32, decay float32, sustain float32, release float32) {
-
 	env.attackSlope = 1 / float64(attack)
 	env.decaySlope = 1 / float64(decay)
 	env.releaseSlope = 1 / float64(release)
@@ -49,65 +48,50 @@ func (env *modulationEnvelope) start(delay float32, attack float32, hold float32
 }
 
 func (env *modulationEnvelope) release() {
-
 	env.stage = env_Release
 	env.releaseEndTime += float64(env.processedSampleCount) / float64(env.synthesizer.SampleRate)
 	env.releaseLevel = env.value
 }
 
 func (env *modulationEnvelope) process(sampleCount int32) bool {
-
 	env.processedSampleCount += sampleCount
-
 	currentTime := float64(env.processedSampleCount) / float64(env.synthesizer.SampleRate)
 
 	for env.stage <= env_Hold {
-
 		var endTime float64
 		switch env.stage {
-
 		case env_Delay:
 			endTime = env.attackStartTime
-
 		case env_Attack:
 			endTime = env.holdStartTime
-
 		case env_Hold:
 			endTime = env.decayStartTime
-
 		default:
 			panic("invalid envelope stage")
 		}
 
 		if currentTime < endTime {
 			break
-		} else {
-			env.stage++
 		}
+		env.stage++
 	}
 
 	switch env.stage {
-
 	case env_Delay:
 		env.value = 0
 		return true
-
 	case env_Attack:
 		env.value = float32(env.attackSlope * (currentTime - env.attackStartTime))
 		return true
-
 	case env_Hold:
 		env.value = 1
 		return true
-
 	case env_Decay:
 		env.value = float32(math.Max(env.decaySlope*(env.decayEndTime-currentTime), float64(env.sustainLevel)))
 		return env.value > nonAudible
-
 	case env_Release:
 		env.value = float32(math.Max(float64(env.releaseLevel)*float64(env.releaseSlope)*(env.releaseEndTime-currentTime), 0))
 		return env.value > nonAudible
-
 	default:
 		panic("invalid envelope stage.")
 	}

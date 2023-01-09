@@ -21,7 +21,6 @@ type SoundFontInfo struct {
 }
 
 func newSoundFontInfo(r io.Reader) (*SoundFontInfo, error) {
-
 	var err error
 
 	var chunkId string
@@ -49,11 +48,9 @@ func newSoundFontInfo(r io.Reader) (*SoundFontInfo, error) {
 		return nil, errors.New("the type of the list chunk must be 'INFO', but was '" + listType + "'")
 	}
 	pos += 4
-
 	result := new(SoundFontInfo)
 
 	for pos < end {
-
 		var id string
 		id, err = readFourCC(r)
 		if err != nil {
@@ -69,7 +66,6 @@ func newSoundFontInfo(r io.Reader) (*SoundFontInfo, error) {
 		pos += 4
 
 		switch id {
-
 		case "ifil":
 			result.Version, err = newSoundFontVersion(r)
 		case "isng":

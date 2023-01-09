@@ -34,42 +34,35 @@ func (bf *biQuadFilter) clearBuffer() {
 }
 
 func (bf *biQuadFilter) setLowPassFilter(cutoffFrequency float32, resonance float32) {
-
-	if cutoffFrequency < 0.499*float32(bf.synthesizer.SampleRate) {
-
-		bf.active = true
-
-		// This equation gives the Q value which makes the desired resonance peak.
-		// The error of the resultant peak height is less than 3%.
-		q := resonance - resonancePeakOffset/(1+6*(resonance-1))
-
-		w := 2 * math.Pi * float64(cutoffFrequency) / float64(bf.synthesizer.SampleRate)
-		cosw := math.Cos(w)
-		alpha := math.Sin(w) / float64(2*q)
-
-		b0 := (1 - cosw) / 2
-		b1 := 1 - cosw
-		b2 := (1 - cosw) / 2
-		a0 := 1 + alpha
-		a1 := -2 * cosw
-		a2 := 1 - alpha
-
-		bf.setCoefficients(float32(a0), float32(a1), float32(a2), float32(b0), float32(b1), float32(b2))
-
-	} else {
-
+	if cutoffFrequency >= 0.499*float32(bf.synthesizer.SampleRate) {
 		bf.active = false
+		return
 	}
+	bf.active = true
+
+	// This equation gives the Q value which makes the desired resonance peak.
+	// The error of the resultant peak height is less than 3%.
+	q := resonance - resonancePeakOffset/(1+6*(resonance-1))
+
+	w := 2 * math.Pi * float64(cutoffFrequency) / float64(bf.synthesizer.SampleRate)
+	cosw := math.Cos(w)
+	alpha := math.Sin(w) / float64(2*q)
+
+	b0 := (1 - cosw) / 2
+	b1 := 1 - cosw
+	b2 := (1 - cosw) / 2
+	a0 := 1 + alpha
+	a1 := -2 * cosw
+	a2 := 1 - alpha
+
+	bf.setCoefficients(float32(a0), float32(a1), float32(a2), float32(b0), float32(b1), float32(b2))
 }
 
 func (bf *biQuadFilter) process(block []float32) {
-
 	blockLength := len(block)
 
 	if bf.active {
-
 		for t := 0; t < blockLength; t++ {
-
 			input := block[t]
 			output := bf.a0*input + bf.a1*bf.x1 + bf.a2*bf.x2 - bf.a3*bf.y1 - bf.a4*bf.y2
 
@@ -80,9 +73,7 @@ func (bf *biQuadFilter) process(block []float32) {
 
 			block[t] = output
 		}
-
 	} else {
-
 		bf.x2 = block[blockLength-2]
 		bf.x1 = block[blockLength-1]
 		bf.y2 = bf.x2

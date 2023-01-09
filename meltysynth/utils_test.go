@@ -1,10 +1,8 @@
-package meltysynth_test
+package meltysynth
 
 import (
 	"math"
 	"testing"
-
-	"github.com/sinshu/go-meltysynth/meltysynth"
 )
 
 func areEqual(t *testing.T, x float64, y float64) {
@@ -16,8 +14,7 @@ func areEqual(t *testing.T, x float64, y float64) {
 	}
 }
 
-func checkInstrumentRegion(t *testing.T, region *meltysynth.InstrumentRegion, values []float64) {
-
+func checkInstrumentRegion(t *testing.T, region *InstrumentRegion, values []float64) {
 	areEqual(t, float64(region.GetSampleStart()), values[0])
 	areEqual(t, float64(region.GetSampleEnd()), values[1])
 	areEqual(t, float64(region.GetSampleStartLoop()), values[2])
@@ -70,7 +67,7 @@ func checkInstrumentRegion(t *testing.T, region *meltysynth.InstrumentRegion, va
 	areEqual(t, float64(region.GetRootKey()), values[49])
 }
 
-func checkPresetRegion(t *testing.T, region *meltysynth.PresetRegion, values []float64) {
+func checkPresetRegion(t *testing.T, region *PresetRegion, values []float64) {
 
 	areEqual(t, float64(region.GetModulationLfoToPitch()), values[0])
 	areEqual(t, float64(region.GetVibratoLfoToPitch()), values[1])

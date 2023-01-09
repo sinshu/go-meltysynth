@@ -16,7 +16,6 @@ type SynthesizerSettings struct {
 }
 
 func NewSynthesizerSettings(sampleRate int32) *SynthesizerSettings {
-
 	result := new(SynthesizerSettings)
 
 	result.SampleRate = sampleRate
@@ -28,7 +27,6 @@ func NewSynthesizerSettings(sampleRate int32) *SynthesizerSettings {
 }
 
 func (settings *SynthesizerSettings) validate() error {
-
 	if !(16000 <= settings.SampleRate && settings.SampleRate <= 192000) {
 		return errors.New("the sample rate must be between 16000 and 192000")
 	}

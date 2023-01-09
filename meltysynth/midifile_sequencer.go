@@ -22,7 +22,6 @@ func NewMidiFileSequencer(s *Synthesizer) *MidiFileSequencer {
 }
 
 func (seq *MidiFileSequencer) Play(midiFile *MidiFile, loop bool) {
-
 	seq.midiFile = midiFile
 	seq.loop = loop
 
@@ -36,15 +35,13 @@ func (seq *MidiFileSequencer) Play(midiFile *MidiFile, loop bool) {
 }
 
 func (seq *MidiFileSequencer) Stop() {
-
 	seq.midiFile = nil
 
 	seq.synthesizer.Reset()
 }
 
 func (seq *MidiFileSequencer) Render(left []float32, right []float32) {
-
-	wrote := int32(0)
+	var wrote int32
 	length := int32(len(left))
 	for wrote < length {
 		if seq.blockWrote == seq.synthesizer.BlockSize {
@@ -65,7 +62,6 @@ func (seq *MidiFileSequencer) Render(left []float32, right []float32) {
 }
 
 func (seq *MidiFileSequencer) processEvents() {
-
 	if seq.midiFile == nil {
 		return
 	}

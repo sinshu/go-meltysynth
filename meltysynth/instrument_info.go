@@ -13,7 +13,6 @@ type instrumentInfo struct {
 }
 
 func readInstrumentsFromChunk(r io.Reader, size int32) ([]*instrumentInfo, error) {
-
 	var err error
 
 	if size%22 != 0 {
@@ -21,11 +20,9 @@ func readInstrumentsFromChunk(r io.Reader, size int32) ([]*instrumentInfo, error
 	}
 
 	count := size / 22
-
 	instruments := make([]*instrumentInfo, count)
 
 	for i := int32(0); i < count; i++ {
-
 		instrument := new(instrumentInfo)
 
 		instrument.name, err = readFixedLengthString(r, 20)

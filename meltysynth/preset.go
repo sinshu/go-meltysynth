@@ -15,7 +15,6 @@ type Preset struct {
 }
 
 func createPreset(info *presetInfo, zones []*zone, instruments []*Instrument) (*Preset, error) {
-
 	var err error
 
 	result := new(Preset)

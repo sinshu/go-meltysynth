@@ -3,7 +3,6 @@ package meltysynth
 import "math"
 
 func (o *oscillator) startByRegion(data []int16, region regionPair) {
-
 	sampleRate := region.instrument.Sample.SampleRate
 	loopMode := region.GetSampleModes()
 	sampleStart := region.GetSampleStart()
@@ -19,7 +18,6 @@ func (o *oscillator) startByRegion(data []int16, region regionPair) {
 }
 
 func (env *volumeEnvelope) startByRegion(region regionPair, key int32, velocity int32) {
-
 	// If the release time is shorter than 10 ms, it will be clamped to 10 ms to avoid pop noise.
 
 	delay := region.GetDelayVolumeEnvelope()
@@ -33,7 +31,6 @@ func (env *volumeEnvelope) startByRegion(region regionPair, key int32, velocity 
 }
 
 func (env *modulationEnvelope) startByRegion(region regionPair, key int32, velocity int32) {
-
 	// According to the implementation of TinySoundFont, the attack time should be adjusted by the velocity.
 
 	delay := region.GetDelayModulationEnvelope()
@@ -47,11 +44,9 @@ func (env *modulationEnvelope) startByRegion(region regionPair, key int32, veloc
 }
 
 func (lfo *lfo) startVibrato(region regionPair, key int32, velocity int32) {
-
 	lfo.start(region.GetDelayVibratoLfo(), region.GetFrequencyVibratoLfo())
 }
 
 func (lfo *lfo) startModulation(region regionPair, key int32, velocity int32) {
-
 	lfo.start(region.GetDelayModulationLfo(), region.GetFrequencyModulationLfo())
 }

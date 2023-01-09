@@ -14,7 +14,6 @@ type zoneInfo struct {
 }
 
 func readZonesFromChunk(r io.Reader, size int32) ([]*zoneInfo, error) {
-
 	var err error
 
 	if size%4 != 0 {
@@ -22,11 +21,9 @@ func readZonesFromChunk(r io.Reader, size int32) ([]*zoneInfo, error) {
 	}
 
 	count := size / 4
-
 	zones := make([]*zoneInfo, count)
 
 	for i := int32(0); i < count; i++ {
-
 		zone := new(zoneInfo)
 
 		var generatorIndex uint16
