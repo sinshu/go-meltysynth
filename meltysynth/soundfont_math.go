@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	halfPi     float32 = math.Pi // TODO: Shouls this be math.Pi / 2?
+	halfPi     float32 = math.Pi / 2
 	nonAudible float32 = 1.0e-3
 )
 
