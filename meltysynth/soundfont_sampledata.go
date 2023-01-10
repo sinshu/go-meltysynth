@@ -3,6 +3,7 @@ package meltysynth
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 )
 
@@ -33,7 +34,7 @@ func newSoundFontSampleData(r io.Reader) (*soundFontSampleData, error) {
 		return nil, err
 	}
 	if listType != "sdta" {
-		return nil, errors.New("the type of the list chunk must be 'sdta', but was '" + listType + "'")
+		return nil, fmt.Errorf(`the type of the list chunk must be "sdta", but was %q`, listType)
 	}
 	pos += 4
 
@@ -66,7 +67,7 @@ func newSoundFontSampleData(r io.Reader) (*soundFontSampleData, error) {
 				return nil, errors.New("failed to read the 24 bit audio data")
 			}
 		default:
-			return nil, errors.New("the info list contains an unknown id '" + id + "'")
+			return nil, fmt.Errorf("the info list contains an unknown id %q", id)
 		}
 		if err != nil {
 			return nil, err

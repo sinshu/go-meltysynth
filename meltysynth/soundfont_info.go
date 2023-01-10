@@ -3,6 +3,7 @@ package meltysynth
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 )
 
@@ -45,7 +46,7 @@ func newSoundFontInfo(r io.Reader) (*SoundFontInfo, error) {
 		return nil, err
 	}
 	if listType != "INFO" {
-		return nil, errors.New("the type of the list chunk must be 'INFO', but was '" + listType + "'")
+		return nil, fmt.Errorf(`the type of the list chunk must be "INFO", but was %q`, listType)
 	}
 	pos += 4
 	result := new(SoundFontInfo)
@@ -89,7 +90,7 @@ func newSoundFontInfo(r io.Reader) (*SoundFontInfo, error) {
 		case "ISFT":
 			result.Tools, err = readFixedLengthString(r, size)
 		default:
-			return nil, errors.New("the info list contains an unknown id '" + id + "'")
+			return nil, fmt.Errorf("the info list contains an unknown id %q", id)
 		}
 
 		if err != nil {

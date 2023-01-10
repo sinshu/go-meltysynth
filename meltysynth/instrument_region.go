@@ -1,8 +1,7 @@
 package meltysynth
 
 import (
-	"errors"
-	"strconv"
+	"fmt"
 )
 
 type InstrumentRegion struct {
@@ -43,7 +42,7 @@ func createInstrumentRegion(inst *Instrument, global *zone, local *zone, samples
 
 	id := result.gs[gen_SampleID]
 	if !(0 <= id && int(id) < len(samples)) {
-		return nil, errors.New("the instrument '" + inst.Name + "' contains an invalid sample id '" + strconv.Itoa(int(id)) + "'")
+		return nil, fmt.Errorf("the instrument %q contains an invalid sample id %d", inst.Name, id)
 	}
 	result.Sample = samples[id]
 

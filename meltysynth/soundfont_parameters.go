@@ -3,6 +3,7 @@ package meltysynth
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 )
 
@@ -32,7 +33,7 @@ func newSoundFontParameters(r io.Reader) (*soundFontParameters, error) {
 		return nil, err
 	}
 	if listType != "pdta" {
-		return nil, errors.New("the type of the list chunk must be 'pdta', but was '" + listType + "'")
+		return nil, fmt.Errorf(`the type of the list chunk must be "pdta", but was %q`, listType)
 	}
 	pos += 4
 
@@ -79,7 +80,7 @@ func newSoundFontParameters(r io.Reader) (*soundFontParameters, error) {
 		case "shdr":
 			sampleHeaders, err = readSampleHeadersFromChunk(r, size)
 		default:
-			return nil, errors.New("the info list contains an unknown id '" + id + "'")
+			return nil, fmt.Errorf("the info list contains an unknown id %q", id)
 		}
 
 		if err != nil {

@@ -2,6 +2,7 @@ package meltysynth
 
 import (
 	"errors"
+	"fmt"
 )
 
 type Preset struct {
@@ -28,7 +29,7 @@ func createPreset(info *presetInfo, zones []*zone, instruments []*Instrument) (*
 
 	zoneCount := info.zoneEndIndex - info.zoneStartIndex + 1
 	if zoneCount <= 0 {
-		return nil, errors.New("the preset '" + info.name + "' has no zone")
+		return nil, fmt.Errorf("the preset %q has no zone", info.name)
 	}
 
 	zoneSpan := zones[info.zoneStartIndex : info.zoneStartIndex+zoneCount]

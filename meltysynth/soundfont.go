@@ -37,7 +37,7 @@ func NewSoundFont(r io.Reader) (*SoundFont, error) {
 		return nil, err
 	}
 	if formType != "sfbk" {
-		return nil, fmt.Errorf("the type of the riff chunk must be 'sfbk', but was %q'", formType)
+		return nil, fmt.Errorf(`the type of the riff chunk must be "sfbk", but was %q`, formType)
 	}
 
 	result := &SoundFont{}

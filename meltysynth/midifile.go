@@ -3,9 +3,9 @@ package meltysynth
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"math"
-	"strconv"
 	"time"
 )
 
@@ -83,7 +83,7 @@ func NewMidiFile(r io.Reader) (*MidiFile, error) {
 		return nil, err
 	}
 	if chunkType != "MThd" {
-		return nil, errors.New("the chunk type must be 'MThd', but was '" + chunkType + "'")
+		return nil, fmt.Errorf(`the chunk type must be "MThd", but was %q`, chunkType)
 	}
 
 	var size int32
@@ -101,7 +101,7 @@ func NewMidiFile(r io.Reader) (*MidiFile, error) {
 		return nil, err
 	}
 	if !(format == 0 || format == 1) {
-		return nil, errors.New("the format " + strconv.Itoa(int(format)) + " is not supported")
+		return nil, fmt.Errorf("the format %d is not supported", format)
 	}
 
 	var trackCount int16
@@ -145,7 +145,7 @@ func readTrack(r io.Reader) ([]message, []int32, error) {
 		return nil, nil, err
 	}
 	if chunkType != "MTrk" {
-		return nil, nil, errors.New("the chunk type must be 'MTrk', but was '" + chunkType + "'")
+		return nil, nil, fmt.Errorf(`the chunk type must be "MTrk", but was %q`, chunkType)
 	}
 
 	r.Read(make([]byte, 4))

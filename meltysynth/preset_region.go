@@ -1,8 +1,7 @@
 package meltysynth
 
 import (
-	"errors"
-	"strconv"
+	"fmt"
 )
 
 type PresetRegion struct {
@@ -26,7 +25,7 @@ func createPresetRegion(preset *Preset, global *zone, local *zone, instruments [
 
 	id := result.gs[gen_Instrument]
 	if !(0 <= id && int(id) < len(instruments)) {
-		return nil, errors.New("the preset '" + preset.Name + "' contains an invalid instrument id '" + strconv.Itoa(int(id)) + "'")
+		return nil, fmt.Errorf("the preset %q contains an invalid instrument id %d", preset.Name, id)
 	}
 	result.Instrument = instruments[id]
 
