@@ -1,0 +1,28 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "No Arguments",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${fileDirname}"
+        },
+        {
+            "name": "MIDI Synth Test",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${fileDirname}",
+            "args": ["-midi", "flourish.mid", "-o", "flourish.pcm", "-sf2", "TimGM6mb.sf2"]
+        },
+        {
+            "name": "Chord Test",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${fileDirname}",
+            "args": ["-midi", "chord", "-o", "chord.pcm", "-sf2", "TimGM6mb.sf2"]
+        },
+    ]
+}
