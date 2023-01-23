@@ -20,6 +20,14 @@ https://www.youtube.com/watch?v=Ns18c5egyp4
 
 
 
+## Installation
+
+```
+go get github.com/sinshu/go-meltysynth
+```
+
+
+
 ## Examples
 
 An example code to synthesize a simple chord:
