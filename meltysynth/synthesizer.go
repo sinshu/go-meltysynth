@@ -33,6 +33,17 @@ type Synthesizer struct {
 	blockRead int32
 
 	MasterVolume float32
+
+	reverb            *reverb
+	reverbInput       []float32
+	reverbOutputLeft  []float32
+	reverbOutputRight []float32
+
+	chorus            *chorus
+	chorusInputLeft   []float32
+	chorusInputRight  []float32
+	chorusOutputLeft  []float32
+	chorusOutputRight []float32
 }
 
 func NewSynthesizer(sf *SoundFont, settings *SynthesizerSettings) (*Synthesizer, error) {
@@ -86,6 +97,19 @@ func NewSynthesizer(sf *SoundFont, settings *SynthesizerSettings) (*Synthesizer,
 	result.blockRead = result.BlockSize
 
 	result.MasterVolume = 0.5
+
+	if settings.EnableReverbAndChorus {
+		result.reverb = newReverb(settings.SampleRate)
+		result.reverbInput = make([]float32, result.BlockSize)
+		result.reverbOutputLeft = make([]float32, result.BlockSize)
+		result.reverbOutputRight = make([]float32, result.BlockSize)
+
+		result.chorus = newChorus(settings.SampleRate, 0.002, 0.0019, 0.4)
+		result.chorusInputLeft = make([]float32, result.BlockSize)
+		result.chorusInputRight = make([]float32, result.BlockSize)
+		result.chorusOutputLeft = make([]float32, result.BlockSize)
+		result.chorusOutputRight = make([]float32, result.BlockSize)
+	}
 
 	return result, nil
 }
@@ -286,6 +310,11 @@ func (s *Synthesizer) Reset() {
 		s.channels[i].reset()
 	}
 
+	if s.EnableReverbAndChorus {
+		s.reverb.mute()
+		s.chorus.mute()
+	}
+
 	s.blockRead = s.BlockSize
 }
 
@@ -313,14 +342,17 @@ func (s *Synthesizer) Render(left []float32, right []float32) {
 }
 
 func (s *Synthesizer) renderBlock() {
+	blockSize := int(s.BlockSize)
+	activeVoiceCount := int(s.voices.activeVoiceCount)
+
 	s.voices.process()
 
-	for i := 0; i < int(s.BlockSize); i++ {
+	for i := 0; i < blockSize; i++ {
 		s.blockLeft[i] = 0
 		s.blockRight[i] = 0
 	}
 
-	for i := 0; i < int(s.voices.activeVoiceCount); i++ {
+	for i := 0; i < activeVoiceCount; i++ {
 		voice := s.voices.voices[i]
 		previousGainLeft := s.MasterVolume * voice.previousMixGainLeft
 		currentGainLeft := s.MasterVolume * voice.currentMixGainLeft
@@ -328,6 +360,40 @@ func (s *Synthesizer) renderBlock() {
 		var previousGainRight = s.MasterVolume * voice.previousMixGainRight
 		var currentGainRight = s.MasterVolume * voice.currentMixGainRight
 		s.writeBlock(previousGainRight, currentGainRight, voice.block, s.blockRight)
+	}
+
+	if s.EnableReverbAndChorus {
+		for i := 0; i < blockSize; i++ {
+			s.chorusInputLeft[i] = 0
+		}
+		for i := 0; i < blockSize; i++ {
+			s.chorusInputRight[i] = 0
+		}
+		for i := 0; i < activeVoiceCount; i++ {
+			voice := s.voices.voices[i]
+			previousGainLeft := voice.previousChorusSend * voice.previousMixGainLeft
+			currentGainLeft := voice.currentChorusSend * voice.currentMixGainLeft
+			s.writeBlock(previousGainLeft, currentGainLeft, voice.block, s.chorusInputLeft)
+			previousGainRight := voice.previousChorusSend * voice.previousMixGainRight
+			currentGainRight := voice.currentChorusSend * voice.currentMixGainRight
+			s.writeBlock(previousGainRight, currentGainRight, voice.block, s.chorusInputRight)
+		}
+		s.chorus.process(s.chorusInputLeft, s.chorusInputRight, s.chorusOutputLeft, s.chorusOutputRight)
+		arrayMultiplyAdd(s.MasterVolume, s.chorusOutputLeft, s.blockLeft)
+		arrayMultiplyAdd(s.MasterVolume, s.chorusOutputRight, s.blockRight)
+
+		for i := 0; i < blockSize; i++ {
+			s.reverbInput[i] = 0
+		}
+		for i := 0; i < activeVoiceCount; i++ {
+			voice := s.voices.voices[i]
+			previousGain := s.reverb.getInputGain() * voice.previousReverbSend * (voice.previousMixGainLeft + voice.previousMixGainRight)
+			currentGain := s.reverb.getInputGain() * voice.currentReverbSend * (voice.currentMixGainLeft + voice.currentMixGainRight)
+			s.writeBlock(previousGain, currentGain, voice.block, s.reverbInput)
+		}
+		s.reverb.process(s.reverbInput, s.reverbOutputLeft, s.reverbOutputRight)
+		arrayMultiplyAdd(s.MasterVolume, s.reverbOutputLeft, s.blockLeft)
+		arrayMultiplyAdd(s.MasterVolume, s.reverbOutputRight, s.blockRight)
 	}
 }
 
