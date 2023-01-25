@@ -10,7 +10,7 @@ const (
 	offsetRoom   = 0.7
 	initialRoom  = 0.5
 	initialDamp  = 0.5
-	initialWet   = 1 / scaleWet
+	initialWet   = 1.0 / scaleWet
 	initialWidth = 1.0
 	stereoSpread = 23
 
@@ -99,6 +99,10 @@ func newReverb(sampleRate int32) *reverb {
 	}
 
 	result := new(reverb)
+	result.cfsL = cfsL
+	result.cfsR = cfsR
+	result.apfsL = apfsL
+	result.apfsR = apfsR
 	result.setWet(initialWet)
 	result.setRoomSize(initialRoom)
 	result.setDamp(initialDamp)
@@ -129,6 +133,15 @@ func scaleTuning(sampleRate int32, tuning int) int {
 }
 
 func (r *reverb) process(input []float32, outputLeft []float32, outputRight []float32) {
+	length := len(input)
+
+	for t := 0; t < length; t++ {
+		outputLeft[t] = 0
+	}
+	for t := 0; t < length; t++ {
+		outputRight[t] = 0
+	}
+
 	for i := 0; i < len(r.cfsL); i++ {
 		r.cfsL[i].process(input, outputLeft)
 	}
@@ -146,7 +159,6 @@ func (r *reverb) process(input []float32, outputLeft []float32, outputRight []fl
 	}
 
 	// With the default settings, we can skip this part.
-	length := len(input)
 	if 1.0-r.wet1 > 1.0e-3 || r.wet2 > 1.0e-3 {
 		for t := 0; t < length; t++ {
 			left := outputLeft[t]
