@@ -262,14 +262,15 @@ func (cf *combFilter) process(inputBlock []float32, outputBlock []float32) {
 			input := inputBlock[blockPos]
 
 			// The following ifs are to avoid performance problem due to denormalized number.
+			// These ifs are equivalent to "if abs(value) < 1.0E-6".
 
 			output := cf.buffer[bufferPos]
-			if math.Abs(float64(output)) < 1.0e-6 {
+			if (math.Float32bits(output) & 0x7FFFFFFF) < 897988541 {
 				output = 0
 			}
 
 			cf.filterStore = (output * cf.damp2) + (cf.filterStore * cf.damp1)
-			if math.Abs(float64(cf.filterStore)) < 1.0e-6 {
+			if (math.Float32bits(cf.filterStore) & 0x7FFFFFFF) < 897988541 {
 				cf.filterStore = 0
 			}
 
@@ -335,7 +336,7 @@ func (apf *allPassFilter) process(block []float32) {
 			input := block[blockPos]
 
 			bufout := apf.buffer[bufferPos]
-			if math.Abs(float64(bufout)) < 1.0e-6 {
+			if (math.Float32bits(bufout) & 0x7FFFFFFF) < 897988541 {
 				bufout = 0
 			}
 
