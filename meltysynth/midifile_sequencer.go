@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+const (
+	seekLookBehind = 1.0 // Number of seconds required for synchronisation when seeking
+)
+
 type MidiFileSequencer struct {
 	synthesizer *Synthesizer
 	midiFile    *MidiFile
@@ -38,6 +42,34 @@ func (seq *MidiFileSequencer) Stop() {
 	seq.midiFile = nil
 
 	seq.synthesizer.Reset()
+}
+
+func (seq *MidiFileSequencer) Pos() time.Duration {
+	return seq.currentTime + time.Duration(float64(time.Second) * float64(seq.blockWrote) / float64(seq.synthesizer.SampleRate))
+}
+
+func (seq *MidiFileSequencer) Seek(pos time.Duration) {
+	// When seeking in the past, we’ll have to restart message processing from the beginning of the file
+	if pos < seq.currentTime {
+		seq.synthesizer.Reset()
+		seq.msgIndex = 0
+	}
+
+	// When seeking in the past or far into the future, find a synchronisation block
+	// seekLookBehind seconds before the seek point, play all messages until that block,
+	// and stop all notes.
+	if pos < seq.currentTime || pos > seq.currentTime + seekLookBehind * time.Second {
+		syncBlock := int32(math.Max(0, pos.Seconds() - seekLookBehind)) * seq.synthesizer.SampleRate / seq.synthesizer.BlockSize
+		seq.blockWrote = 0
+		seq.currentTime = time.Duration(float64(time.Second) * float64(seq.synthesizer.BlockSize * syncBlock) / float64(seq.synthesizer.SampleRate))
+		seq.processEvents()
+		seq.synthesizer.NoteOffAll(false)
+	}
+
+	// Play but discard samples up to the desired seek point
+	skipSamples := int32(math.Max(0, (pos - seq.currentTime).Seconds() * float64(seq.synthesizer.SampleRate)))
+	tmp := make([]float32, skipSamples)
+	seq.Render(tmp, tmp)
 }
 
 func (seq *MidiFileSequencer) Render(left []float32, right []float32) {
