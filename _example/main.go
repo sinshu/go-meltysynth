@@ -114,7 +114,10 @@ func midi(soundFont *meltysynth.SoundFont, midiFilePath string, outputFile strin
 	right := make([]float32, length)
 
 	// Render the waveform.
+	start := time.Now()
 	sequencer.Render(left, right)
+	duration := time.Since(start)
+	fmt.Printf("Time: %v\n", duration.Seconds())
 
 	return writeFile(left, right, outputFile)
 }
