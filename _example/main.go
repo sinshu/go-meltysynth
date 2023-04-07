@@ -88,6 +88,7 @@ func simpleChord(soundFont *meltysynth.SoundFont, outputFile string) error {
 func midi(soundFont *meltysynth.SoundFont, midiFilePath string, outputFile string) error {
 	// Create the synthesizer.
 	settings := meltysynth.NewSynthesizerSettings(44100)
+	settings.EnableReverbAndChorus = false
 	synthesizer, err := meltysynth.NewSynthesizer(soundFont, settings)
 	if err != nil {
 		return err
